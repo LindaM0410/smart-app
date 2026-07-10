@@ -119,13 +119,10 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 ├── README.md
 ├── docs/
 │   ├── spec.md
-│   ├── prd.md
 │   ├── architecture.md
 │   ├── backlog.md
 │   ├── decisions.md
-│   ├── modus-operandi.md
-│   ├── meetings/
-│   └── results/
+│   └── modus-operandi.md
 └── src/                 # erst nach Stack-Entscheidung konkretisieren
 ```
 

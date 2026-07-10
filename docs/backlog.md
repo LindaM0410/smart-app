@@ -52,4 +52,3 @@ Die Anforderungen sind aus der Spezifikation übernommen, aber noch nicht durch 
 - Featurebeginn: Status auf `in-progress`, Branch oder Plan referenzieren.
 - Fertigstellung: Status erst nach Tests auf `done`, Commit referenzieren.
 - Verworfen: Status `killed`, Begründung in `decisions.md`; Zeile bleibt bestehen.
-- Nutzerwirksame `done`-Features erhalten nach dem Pilot eine Outcome-Notiz unter `docs/results/BV-NNN.md`.

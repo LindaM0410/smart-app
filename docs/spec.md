@@ -4,7 +4,7 @@
 
 Bella Vista ist ein italienisches Restaurant mit zwei Standorten in Berlin: Kreuzberg und Spandau.
 
-Der Betrieb arbeitet aktuell mit Zetteln, Excel-Listen, Telefonnotizen und einzelnen Word-Dokumenten. Dadurch entstehen Fehler bei Reservierungen, Tischplanung, Bestellungen, Abrechnung, Stammgästen und Catering-Aufträgen.
+Der Betrieb arbeitet aktuell mit Zetteln, Excel-Listen, Telefonnotizn und einzelnen Word-Dokumenten. Dadurch entstehen Fehler bei Reservierungen, Tischplanung, Bestellungen, Abrechnung, Stammgästen und Catering-Aufträgen.
 
 Die App soll eine interne Restaurant-App für Mitarbeitende werden. Gäste nutzen die App nicht selbst.
 

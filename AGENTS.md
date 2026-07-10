@@ -6,8 +6,7 @@ Interne Restaurant-App für die Bella-Vista-Standorte Kreuzberg und Spandau. Pri
 
 ## Verbindliche Quellen
 
-- Fachliche Ausgangsspezifikation: `docs/spec.md`
-- Produktziele und Scope: `docs/prd.md`
+- Produktanforderungen, Ziele und Scope: `docs/spec.md`
 - Systemgrenzen, Domänenmodell und technische Leitplanken: `docs/architecture.md`
 - Umsetzungsstatus und stabile Feature-IDs: `docs/backlog.md`
 - Getroffene Entscheidungen: `docs/decisions.md`
@@ -24,7 +23,7 @@ Bei Widersprüchen gilt: Neuere explizite Einträge in `docs/decisions.md` schla
 5. Fachregeln serverseitig bzw. in der maßgeblichen Domänenschicht erzwingen, nicht nur in der UI.
 6. Änderungen mit passenden automatisierten Tests verifizieren. Doppelbuchung, Berechtigungen, Rabatte, Stornos und Rechnungsbeträge sind besonders kritisch.
 7. Neue Architektur- oder Produktentscheidungen chronologisch in `docs/decisions.md` festhalten.
-8. Nach Go-live eines nutzerwirksamen Features ein Ergebnis unter `docs/results/BV-NNN.md` dokumentieren.
+8. Backlog und betroffene Dokumente beim Abschluss einer Änderung synchronisieren.
 
 ## Fachliche Leitplanken
 
