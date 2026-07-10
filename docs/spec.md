@@ -1,407 +1,506 @@
-# SPEC.md – Bella Vista Restaurant-App
+# SPEC.md — Bella Vista Restaurant-App
 
 ## 1. Kontext und Ziel
 
-Bella Vista ist ein italienisches Restaurant mit zwei Standorten in Berlin:
+Bella Vista ist ein italienisches Restaurant mit zwei Standorten in Berlin: Kreuzberg und Spandau.
 
-* Kreuzberg
-* Spandau
+Der Betrieb arbeitet aktuell mit Zetteln, Excel-Listen, Telefonnotizen und einzelnen Word-Dokumenten. Dadurch entstehen Fehler bei Reservierungen, Tischplanung, Bestellungen, Abrechnung, Stammgästen und Catering-Aufträgen.
 
-Der Inhaber möchte die aktuelle Zettelwirtschaft im Restaurantbetrieb reduzieren. Besonders problematisch sind Reservierungen, Tischplanung, Bestellungen, Abrechnung, Stammgäste und Catering-Aufträge.
+Die App soll eine interne Restaurant-App für Mitarbeitende werden. Gäste nutzen die App nicht selbst.
 
-Das Ziel der Anwendung ist eine interne Restaurant-App für Mitarbeitende. Die App soll die wichtigsten Geschäftsobjekte, Beziehungen und Regeln so abbilden, dass Reservierungen, Tischverfügbarkeit, Bestellungen und Abrechnung zuverlässiger funktionieren.
+Das wichtigste Ziel ist eine zuverlässige Reservierungs- und Tischübersicht. Mitarbeitende sollen pro Standort sehen, welche Tische frei, bald reserviert oder belegt sind. Doppelbuchungen und unklare Tischsituationen sollen verhindert werden.
 
-Die wichtigste Priorität ist die Reservierungs- und Tischübersicht, weil dort aktuell der größte Schaden entsteht: doppelte Tischvergaben, fehlende Standortübersicht und unklare Verfügbarkeit.
+Die erste Version soll den Kernbetrieb stabil abbilden. Sie muss nicht alle möglichen Sonderfälle lösen.
 
 ---
 
 ## 2. Scope der ersten Version
 
-Die erste Version der App konzentriert sich auf:
+Die erste Version soll folgende Abläufe unterstützen:
 
-1. Verwaltung von Standorten und Tischen
-2. Reservierungen mit Tischzuordnung und Status
-3. Vermeidung von Doppelbuchungen
-4. Walk-ins und zeitabhängige Tischverfügbarkeit
-5. Digitale Bestellungen pro Tisch
-6. Rechnungen aus Bestellungen
-7. Stammgäste und Bella-Card-Rabatte
-8. Grundlegende Verwaltung von Catering-Aufträgen und Firmenkunden
+1. Standorte und Tische verwalten
+2. Gäste und Stammgäste erfassen
+3. Reservierungen anlegen, ändern und stornieren
+4. Reservierungen passenden Tischen zuordnen
+5. Doppelbuchungen verhindern
+6. Tischübersicht pro Standort und Tag anzeigen
+7. Walk-in-Gäste anhand freier Zeitfenster platzieren
+8. No-Shows erfassen
+9. Bestellungen pro Tisch aufnehmen
+10. Rechnungen aus Bestellungen erzeugen
+11. Bella-Card-Rabatt korrekt anwenden
+12. einfache Catering-Aufträge verwalten
 
-Nicht im Fokus der ersten Version:
+Nicht Teil der ersten Version sind:
 
-* öffentliche Gast-App
-* Online-Reservierung durch Gäste
-* vollständige Kassenintegration
-* automatische Marketingfunktionen
-* vollständige Personalplanung
-* Lieferdienst
+- öffentliche Online-Reservierung durch Gäste
+- Lieferung
+- Kassenintegration
+- Zahlungsanbieter-Integration
+- vollständige Personalplanung
+- automatische Marketingfunktionen
+- Migration alter Reservierungen und alter Bestellungen
+
+Alte Stammgastdaten und Firmenkundenkontakte können manuell übernommen werden. Alte Zettel mit Reservierungen oder Bestellungen müssen nicht migriert werden.
 
 ---
 
-## 3. Rollen
+## 3. Rollen und Rechte
 
 ### 3.1 Inhaber
 
-Der Inhaber darf alle Daten sehen und bearbeiten. Er darf Rabatte, Stornos, Speisekarte, Catering-Aufträge und Firmenkunden verwalten.
+Der Inhaber hat vollständigen Zugriff. Er darf Standorte, Tische, Reservierungen, Gäste, Bestellungen, Rechnungen, Rabatte, Stornos, Speisekarte, Mitarbeitende und Catering verwalten.
 
 ### 3.2 Manager
 
-Manager dürfen Reservierungen planen, größere Gruppen koordinieren, Stornos und Rabatte freigeben sowie Gerichte, Getränke, Catering-Aufträge und Firmenkunden pflegen.
+Manager dürfen Reservierungen planen, Tische zuweisen, Gruppenreservierungen verwalten, Gäste pflegen, Bestellungen sehen, Stornos und Rabatte freigeben, Speisekarte pflegen und Catering-Aufträge verwalten.
 
 ### 3.3 Bedienung
 
-Bedienungen dürfen Reservierungen aufnehmen, Tische zuweisen, Gäste platzieren und Bestellungen aufnehmen oder ändern.
-
-Bedienungen dürfen keine Rabatte oder Stornos ohne Freigabe durchführen.
+Bedienung darf Gäste erfassen, Reservierungen anlegen, Gäste platzieren, Bestellungen aufnehmen und Rechnungen erzeugen. Bedienung darf Rabatte und Stornos nicht allein endgültig freigeben.
 
 ### 3.4 Küche
 
-Die Küche sieht Bestellungen, Änderungen und Stornos. Die Küche verwaltet keine Reservierungen, Rabatte oder Stammdaten.
+Die Küche sieht Bestellungen und Bestellpositionen. Sie darf den Status von Bestellpositionen aktualisieren, aber keine Reservierungen, Gäste, Rechnungen oder Rabatte verwalten.
+
+### 3.5 Rechteübersicht
+
+| Aktion | Inhaber | Manager | Bedienung | Küche |
+| --- | --- | --- | --- | --- |
+| Reservierungen anlegen | ja | ja | ja | nein |
+| Tische zuweisen | ja | ja | ja | nein |
+| Gruppenreservierungen planen | ja | ja | nein | nein |
+| Bestellungen aufnehmen | ja | ja | ja | nein |
+| Bestellstatus ändern | ja | ja | nein | ja |
+| Stornos freigeben | ja | ja | nein | nein |
+| Rabatte freigeben | ja | ja | nein | nein |
+| Speisekarte verwalten | ja | ja | nein | nein |
+| Catering verwalten | ja | ja | nein | nein |
 
 ---
 
-## 4. Hauptentitäten
+## 4. Entitäten
 
-## 4.1 Standort
+### 4.1 Standort
 
-Ein Standort ist ein Bella-Vista-Restaurant.
+Ein Standort beschreibt ein Restaurant von Bella Vista.
 
-| Attribut         | Beschreibung           |
-| ---------------- | ---------------------- |
-| standortId       | eindeutige ID          |
-| name             | Kreuzberg oder Spandau |
-| sitzplatzAnzahl  | Anzahl der Sitzplätze  |
-| hatAussenbereich | ja/nein                |
-| hatGrill         | ja/nein                |
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| id | string | eindeutige ID |
+| name | string | Kreuzberg oder Spandau |
+| adresse | string | Adresse des Standorts |
+| sitzplaetze | number | ungefähre Gesamtkapazität |
+| hatTerrasse | boolean | ob Außenplätze vorhanden sind |
+| hatGrill | boolean | ob Grillgerichte möglich sind |
+| aktiv | boolean | ob Standort genutzt wird |
 
-Bekannte Ausprägungen:
+Fachliche Hinweise:
 
-* Kreuzberg: ca. 80 Sitzplätze, Innen- und Außenbereich, Terrasse, mehr Laufkundschaft
-* Spandau: ca. 50 Sitzplätze, nur innen, kein Grill, ruhiger
-
----
-
-## 4.2 Tisch
-
-Ein Tisch ist ein reservierbarer Platz an einem Standort.
-
-| Attribut     | Beschreibung               |
-| ------------ | -------------------------- |
-| tischId      | eindeutige ID              |
-| standortId   | zugehöriger Standort       |
-| nummer       | sichtbare Tischnummer      |
-| sitzplaetze  | maximale Personenzahl      |
-| bereich      | innen, außen oder terrasse |
-| kombinierbar | ja/nein                    |
-
-Tischkombinationen werden als konfigurierbare Stammdaten behandelt. Ein Tisch kann mit anderen Tischen kombinierbar sein, damit größere Gruppen platziert werden können. Die konkrete Kombination wird durch Inhaber oder Manager gepflegt.
+- Kreuzberg hat ca. 80 Plätze, Innenbereich und Terrasse.
+- Spandau hat ca. 50 Plätze, keine richtige Terrasse und keinen Grill.
 
 ---
 
-## 4.3 Gast
+### 4.2 Tisch
 
-Ein Gast ist eine Person, die reserviert, spontan kommt oder Stammgast ist.
+Ein Tisch gehört zu genau einem Standort.
 
-| Attribut       | Beschreibung                |
-| -------------- | --------------------------- |
-| gastId         | eindeutige ID               |
-| name           | Name des Gasts              |
-| telefonnummer  | Kontakt und Wiedererkennung |
-| istStammgast   | ja/nein                     |
-| bellaCardAktiv | ja/nein                     |
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| id | string | eindeutige ID |
+| standortId | string | Referenz auf Standort |
+| nummer | string | sichtbare Tischnummer |
+| kapazitaet | number | normale Sitzplatzanzahl |
+| bereich | enum | innen, außen, fenster, bar |
+| kombinierbar | boolean | ob Tisch mit anderen kombiniert werden kann |
+| aktiv | boolean | ob Tisch nutzbar ist |
 
-Stammgäste werden vor allem über Name und Telefonnummer wiedererkannt. Der Bella-Card-Status ist wichtig für Rabatte.
+Hinweis:
 
----
-
-## 4.4 Mitarbeiter
-
-Ein Mitarbeiter ist eine interne Person mit einer Rolle in der App.
-
-| Attribut        | Beschreibung                            |
-| --------------- | --------------------------------------- |
-| mitarbeiterId   | eindeutige ID                           |
-| name            | Name                                    |
-| benutzername    | Login-Name für die App                  |
-| rolle           | inhaber, manager, bedienung oder kueche |
-| stammstandortId | normaler Standort                       |
-| aktiv           | ja/nein                                 |
-
-Mitarbeitende können zwischen Kreuzberg und Spandau wechseln.
+Tischkombinationen werden als erlaubte Kombinationen von mehreren Tischen innerhalb eines Standorts verstanden. Sie müssen nicht als eigene Hauptentität umgesetzt werden, solange die App speichern kann, welche Tische kombiniert werden dürfen.
 
 ---
 
-## 4.5 Reservierung
+### 4.3 Gast
 
-Eine Reservierung blockiert einen oder mehrere Tische für einen Zeitraum.
+Ein Gast ist eine Person, die reserviert, spontan kommt oder als Stammgast erkannt wird.
 
-| Attribut       | Beschreibung                              |
-| -------------- | ----------------------------------------- |
-| reservierungId | eindeutige ID                             |
-| gastId         | reservierender Gast                       |
-| standortId     | Standort                                  |
-| datum          | Datum                                     |
-| uhrzeit        | Beginn                                    |
-| personenAnzahl | Anzahl der Gäste                          |
-| status         | bestätigt, storniert oder noShow          |
-| notiz          | z. B. Fensterplatz, Allergie, Innen/Außen |
-
----
-
-## 4.6 Bestellung
-
-Eine Bestellung entsteht an einem Tisch und wird durch eine Bedienung aufgenommen.
-
-| Attribut       | Beschreibung                            |
-| -------------- | --------------------------------------- |
-| bestellungId   | eindeutige ID                           |
-| tischId        | zugehöriger Tisch                       |
-| standortId     | Standort                                |
-| aufgenommenVon | Mitarbeiter-ID                          |
-| status         | offen, serviert, bezahlt oder storniert |
-| zeitpunkt      | Zeitpunkt der Aufnahme                  |
-
-Eine Bestellung enthält mehrere Bestellpositionen.
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| id | string | eindeutige ID |
+| name | string | Name des Gasts |
+| telefon | string | Telefonnummer |
+| notiz | string | optionale Hinweise, z. B. Allergie oder Fensterplatz |
+| istStammgast | boolean | ob Gast als Stammgast markiert ist |
+| hatBellaCard | boolean | ob Gast eine aktive Bella-Card hat |
+| besuchsanzahl | number | bekannte oder geschätzte Anzahl Besuche |
+| aktiv | boolean | ob Datensatz genutzt wird |
 
 ---
 
-## 4.7 Firmenkunde
+### 4.4 Mitarbeiter
 
-Ein Firmenkunde ist ein externer Kunde, der Catering-Aufträge anfragt oder regelmäßig bucht.
+Ein Mitarbeiter nutzt die App intern.
 
-| Attribut       | Beschreibung                                      |
-| -------------- | ------------------------------------------------- |
-| firmenkundeId  | eindeutige ID                                     |
-| firmenname     | Name der Firma                                    |
-| ansprechperson | Kontaktperson                                     |
-| telefon        | Telefonnummer                                     |
-| email          | E-Mail-Adresse                                    |
-| notiz          | z. B. frühere Veranstaltungen oder Besonderheiten |
-
-Firmenkunden werden gespeichert, damit wiederkehrende Kontakte und frühere Catering-Aufträge leichter gefunden werden können.
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| id | string | eindeutige ID |
+| name | string | Name |
+| benutzername | string | Login-Name für die App |
+| rolle | enum | inhaber, manager, bedienung, kueche |
+| hauptstandortId | string | üblicher Standort |
+| aktiv | boolean | ob Mitarbeiter aktiv ist |
 
 ---
 
-## 4.8 CateringAuftrag
+### 4.5 Reservierung
 
-Ein Catering-Auftrag beschreibt eine externe Firmenveranstaltung.
+Eine Reservierung blockiert geplante Tischkapazität für einen Zeitraum.
 
-| Attribut       | Beschreibung                                 |
-| -------------- | -------------------------------------------- |
-| cateringId     | eindeutige ID                                |
-| firmenkundeId  | zugehöriger Firmenkunde                      |
-| eventAdresse   | Veranstaltungsort                            |
-| datum          | Eventdatum                                   |
-| personenAnzahl | Anzahl der Personen                          |
-| menue          | gewähltes Menü/Buffet                        |
-| gesamtpreis    | Gesamtpreis                                  |
-| status         | angefragt, bestätigt, geliefert oder bezahlt |
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| id | string | eindeutige ID |
+| gastId | string | Referenz auf Gast |
+| standortId | string | Referenz auf Standort |
+| tischIds | list<string> | zugeordnete Tische |
+| beginn | datetime | Startzeit |
+| ende | datetime | geplantes Ende |
+| personenanzahl | number | Anzahl Personen |
+| status | enum | angefragt, bestaetigt, storniert, noShow, abgeschlossen |
+| notiz | string | Sonderwünsche oder Hinweise |
+| istGruppe | boolean | ob Gruppenreservierung |
+| erstelltVonMitarbeiterId | string | wer die Reservierung angelegt hat |
 
-Catering ist kein normaler Lieferdienst, sondern ein wachsender Zusatzprozess für Firmenveranstaltungen.
+Hinweis:
 
----
+Die Reservierung beschreibt die Planung. Die reale Belegung eines Tisches kann davon abweichen, weil Gäste nicht automatisch nach zwei Stunden gehen.
 
-## 5. Unterstützende Objekte und Stammdaten
-
-Diese Objekte sind für die Umsetzung wichtig, werden aber nicht als Hauptentitäten gezählt.
-
-### 5.1 ReservierungsTisch
-
-ReservierungsTisch löst die n:m-Beziehung zwischen Reservierung und Tisch auf.
-
-| Attribut             | Beschreibung            |
-| -------------------- | ----------------------- |
-| reservierungsTischId | eindeutige ID           |
-| reservierungId       | zugehörige Reservierung |
-| tischId              | zugehöriger Tisch       |
+Die Zuordnung von Reservierungen zu Tischen kann technisch als eigene Verbindungstabelle `ReservierungTisch` umgesetzt werden, da eine Reservierung mehrere Tische nutzen kann und ein Tisch über die Zeit in vielen Reservierungen vorkommt.
 
 ---
 
-### 5.2 Bestellposition
+### 4.6 Bestellung
 
-Bestellposition löst die n:m-Beziehung zwischen Bestellung und Artikel auf.
+Eine Bestellung gehört normalerweise zu einem Tisch.
 
-| Attribut     | Beschreibung                   |
-| ------------ | ------------------------------ |
-| positionId   | eindeutige ID                  |
-| bestellungId | zugehörige Bestellung          |
-| artikelId    | Gericht/Getränk                |
-| menge        | Anzahl                         |
-| sonderwunsch | z. B. ohne Nüsse               |
-| status       | offen, serviert oder storniert |
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| id | string | eindeutige ID |
+| standortId | string | Referenz auf Standort |
+| tischId | string | Referenz auf Tisch |
+| reservierungId | string/null | optionale Referenz auf Reservierung |
+| aufgenommenVonMitarbeiterId | string | Bedienung |
+| positionen | list<object> | Artikel, Menge, Preis, Sonderwunsch, Status |
+| status | enum | offen, inBearbeitung, abgeschlossen, bezahlt, storniert |
+| erstelltAm | datetime | Zeitpunkt der Erstellung |
+
+Bestellpositionen enthalten mindestens:
+
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| artikelId | string | Referenz auf Artikel |
+| menge | number | Anzahl |
+| einzelpreis | decimal | Preis zum Zeitpunkt der Bestellung |
+| sonderwunsch | string | optionale Notiz |
+| status | enum | offen, inZubereitung, serviert, storniert |
 
 ---
 
-### 5.3 Rechnung
+### 4.7 Artikel
+
+Ein Artikel ist ein Speisekartenartikel.
+
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| id | string | eindeutige ID |
+| name | string | Name des Artikels |
+| kategorie | string | z. B. Pasta, Getränk, Dessert |
+| preis | decimal | Preis |
+| benoetigtGrill | boolean | ob Grill erforderlich ist |
+| verfuegbarInStandortIds | list<string> | Standorte, an denen der Artikel bestellbar ist |
+| aktiv | boolean | ob Artikel grundsätzlich verfügbar ist |
+
+---
+
+### 4.8 Rechnung
 
 Eine Rechnung entsteht aus einer Bestellung.
 
-| Attribut         | Beschreibung          |
-| ---------------- | --------------------- |
-| rechnungId       | eindeutige ID         |
-| bestellungId     | zugehörige Bestellung |
-| zahlerGastId     | optionaler Zahler     |
-| gesamtbetrag     | Betrag                |
-| rabattAngewendet | ja/nein               |
-| zahlungsart      | bar oder karte        |
-| status           | offen oder bezahlt    |
+Die Rechnung ist ein unterstützendes Objekt, weil sie aus Bestellung, Zahler und Rabattregeln abgeleitet wird. Sie wird trotzdem als eigene Entität beschrieben, damit Abrechnung, Zahlungsstatus und Rabattfreigabe eindeutig modelliert sind.
+
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| id | string | eindeutige ID |
+| bestellungId | string | Referenz auf Bestellung |
+| zahlerGastId | string/null | Gast, der zahlt |
+| bruttoSumme | decimal | Summe vor Rabatt |
+| rabattProzent | number | Rabatt in Prozent |
+| endbetrag | decimal | finaler Betrag |
+| zahlungsart | enum | bar, karte |
+| status | enum | offen, bezahlt, storniert |
+| freigegebenVonMitarbeiterId | string/null | wer Rabatt freigegeben hat |
 
 ---
 
-### 5.4 Artikel
+### 4.9 CateringAuftrag
 
-Ein Gericht oder Getränk ist ein bestellbarer Artikel der Speisekarte.
+Ein Catering-Auftrag beschreibt einen externen Auftrag für eine Firma.
 
-| Attribut       | Beschreibung               |
-| -------------- | -------------------------- |
-| artikelId      | eindeutige ID              |
-| name           | Name des Gerichts/Getränks |
-| kategorie      | speise oder getraenk       |
-| preis          | Verkaufspreis              |
-| benoetigtGrill | ja/nein                    |
-| aktiv          | ja/nein                    |
-
-Die vollständige Speisekarte wurde nicht als feste Liste erhoben. Deshalb wird sie als pflegbarer Stammdatenbereich modelliert.
-
-Inhaber und Manager dürfen Gerichte/Getränke anlegen, ändern, deaktivieren und Standorten zuordnen. Bedienungen dürfen Artikel nur für Bestellungen auswählen.
-
----
-
-## 6. Beziehungen
-
-| Nr. | Beziehung                          | Kardinalität | Beschreibung                                                                                                                                                            |
-| --- | ---------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Standort hat Tische                | 1:n          | Ein Standort besitzt mehrere Tische. Ein Tisch gehört zu genau einem Standort.                                                                                          |
-| 2   | Standort hat Reservierungen        | 1:n          | Eine Reservierung gehört zu genau einem Standort.                                                                                                                       |
-| 3   | Gast macht Reservierungen          | 1:n          | Ein Gast kann mehrere Reservierungen haben.                                                                                                                             |
-| 4   | Reservierung blockiert Tisch(e)    | n:m          | Eine Reservierung kann mehrere Tische blockieren; ein Tisch kann über verschiedene Zeitfenster in mehreren Reservierungen vorkommen. Umsetzung über ReservierungsTisch. |
-| 5   | Tisch hat Bestellungen             | 1:n          | Ein Tisch kann mehrere Bestellungen haben.                                                                                                                              |
-| 6   | Mitarbeiter nimmt Bestellungen auf | 1:n          | Eine Bedienung kann mehrere Bestellungen aufnehmen.                                                                                                                     |
-| 7   | Bestellung enthält Artikel         | n:m          | Eine Bestellung enthält mehrere Artikel; ein Artikel kann in vielen Bestellungen vorkommen. Umsetzung über Bestellposition.                                             |
-| 8   | Rechnung hat Zahler                | n:0..1       | Eine Rechnung kann optional einem Gast als Zahler zugeordnet sein, z. B. für Bella-Card-Rabatt.                                                                         |
-| 9   | Firmenkunde hat CateringAufträge   | 1:n          | Ein Firmenkunde kann mehrere Catering-Aufträge haben. Ein Catering-Auftrag gehört zu genau einem Firmenkunden.                                                          |
+| Attribut | Datentyp | Beschreibung |
+| --- | --- | --- |
+| id | string | eindeutige ID |
+| firmenname | string | Name der Firma |
+| ansprechperson | string | Kontaktperson |
+| telefon | string | Telefonnummer |
+| email | string | E-Mail |
+| lieferadresse | string | Adresse des Events |
+| datum | date | Eventdatum |
+| uhrzeit | time | Eventuhrzeit |
+| personenanzahl | number | Anzahl Personen |
+| menueBeschreibung | string | gewähltes Menü |
+| preisGesamt | decimal | Gesamtpreis |
+| status | enum | angefragt, bestaetigt, geliefert, bezahlt |
 
 ---
 
-## 7. Business Rules
+## 5. Beziehungen
 
-### BR1 – Reservierungsdauer und Doppelbuchung
-
-Wenn eine Reservierung angelegt wird, blockiert sie den zugeordneten Tisch standardmäßig für 2 Stunden.
-
-Ein Tisch darf am selben Standort im gleichen Zeitfenster nicht doppelt vergeben werden.
-
----
-
-### BR2 – Reale Belegung, Verspätung und No-Show
-
-Wenn ein Tisch 20 Minuten vor der nächsten Reservierung noch besetzt ist, muss die App einen Warnhinweis anzeigen.
-
-Wenn Gäste ca. 15 bis 20 Minuten nach Reservierungsbeginn nicht erscheinen, darf die Reservierung als noShow markiert werden. Bei vollem Haus darf der Tisch danach weitergegeben werden.
+| Beziehung | Typ | Beschreibung |
+| --- | --- | --- |
+| Standort → Tisch | 1:n | Ein Standort hat viele Tische |
+| Standort → Reservierung | 1:n | Eine Reservierung gehört zu einem Standort |
+| Gast → Reservierung | 1:n | Ein Gast kann mehrere Reservierungen haben |
+| Reservierung ↔ Tisch | n:m | Eine Reservierung kann mehrere Tische nutzen; ein Tisch kann über die Zeit in vielen Reservierungen vorkommen |
+| Standort ↔ Artikel | n:m | Ein Artikel kann je nach Standort verfügbar sein |
+| Tisch → Bestellung | 1:n | Ein Tisch kann über die Zeit mehrere Bestellungen haben |
+| Bestellung → Artikel | n:m | Eine Bestellung enthält mehrere Artikel; ein Artikel kann in vielen Bestellungen vorkommen |
+| Bestellung → Rechnung | 1:n | Eine Bestellung kann eine oder mehrere Rechnungen haben |
+| Mitarbeiter → Reservierung/Bestellung | 1:n | Ein Mitarbeiter kann viele Reservierungen oder Bestellungen anlegen |
 
 ---
 
-### BR3 – Bestellungen und Rechnungen
+## 6. Geschäftsregeln
 
-Eine Bestellung besteht aus mindestens einer Bestellposition.
+### BR1 — Reservierungsdauer und Belegung
 
-Stornierte Bestellpositionen dürfen nicht auf einer Rechnung erscheinen.
+Eine Reservierung blockiert einen Tisch standardmäßig für zwei Stunden. Die reale Belegung endet aber erst, wenn ein Mitarbeiter den Tisch freigibt. Wenn ein Tisch noch belegt ist und bald eine Folgereservierung beginnt, soll die App warnen.
 
-Änderungen und Stornos müssen für Küche und Service sichtbar sein.
+### BR2 — Doppelbuchung
 
----
+Ein Tisch darf nicht gleichzeitig in zwei aktiven, zeitlich überlappenden Reservierungen verwendet werden.
 
-### BR4 – Berechtigungen, Bella-Card und Speisekarte
+Aktiv blockierend sind:
 
-Rabatte und Stornos dürfen nur durch Inhaber oder Manager freigegeben werden.
+- angefragt
+- bestaetigt
 
-Bella-Card gewährt 15 Prozent Rabatt für einen berechtigten Zahler.
+Nicht blockierend sind:
 
-Gerichte und Getränke dürfen nur durch Inhaber oder Manager angelegt, geändert oder deaktiviert werden.
+- storniert
+- noShow
+- abgeschlossen
 
----
+### BR3 — Standortbindung
 
-### BR5 – Standortregeln, Gruppen und Catering
+Reservierungen, Tische, Bestellungen und Artikelverfügbarkeit müssen zum gleichen Standort passen. Eine Reservierung in Kreuzberg darf nur Tischen aus Kreuzberg zugeordnet werden.
 
-Ein Gericht oder Getränk darf nur an Standorten bestellt werden, an denen es verfügbar ist. Grillgerichte dürfen in Spandau nicht bestellbar sein, weil Spandau keinen Grill hat.
+### BR4 — Gruppenreservierung
 
-Wenn eine Reservierung mindestens 8 Personen umfasst, gilt sie als Gruppenreservierung. Dann soll ein Gruppenmenü statt einzelner à-la-carte-Bestellungen verwendet werden.
+Ab 8 Personen gilt eine Reservierung als Gruppenreservierung. Für Gruppen ist ein Gruppenmenü vorgesehen. Gruppenreservierungen und Tischkombinationen dürfen nur durch Inhaber oder Manager geplant werden.
 
-Ein Catering-Auftrag durchläuft die Status: angefragt → bestätigt → geliefert → bezahlt. Geliefert bedeutet nicht automatisch bezahlt.
+### BR5 — Bella-Card-Rabatt
 
----
+Der Bella-Card-Rabatt beträgt 15 Prozent. Er gilt nur, wenn der zahlende Gast eine aktive Bella-Card hat. Der Rabatt darf nicht allein durch die Bedienung vergeben werden, sondern muss durch Inhaber oder Manager bestätigt werden.
 
-## 8. Widersprüche und Auflösungen
+### BR6 — Stornos und Rechnung
 
-## Widerspruch 1 – 2-Stunden-Regel vs. reale Tischbelegung
+Stornierte Bestellpositionen dürfen nicht in die Rechnungssumme einfließen. Stornos müssen durch Inhaber oder Manager freigegeben und nachvollziehbar gespeichert werden.
 
-Aussage A: Eine Reservierung blockiert einen Tisch standardmäßig für 2 Stunden.
+### BR7 — Standortabhängige Speisekarte
 
-Aussage B: Gäste werden nicht einfach nach 2 Stunden rausgeworfen.
+Artikel, die einen Grill benötigen, dürfen in Spandau nicht bestellbar sein.
 
-### Auflösung
+### BR8 — Cateringstatus
 
-Die 2-Stunden-Regel ist eine Planungsregel, keine harte Räumungsregel.
+Catering-Aufträge durchlaufen die Statusfolge:
 
-Die App darf einen Tisch nach 2 Stunden nicht automatisch als tatsächlich frei behandeln. Stattdessen soll sie bei Konflikten warnen, besonders 20 Minuten vor einer Folgereservierung.
-
----
-
-## Widerspruch 2 – Tischbasierte Bestellung vs. gastbezogener Bella-Card-Rabatt
-
-Aussage A: Normalerweise laufen Bestellung und Rechnung über den Tisch.
-
-Aussage B: Bella-Card-Rabatt hängt am Stammgast bzw. Zahler.
-
-### Auflösung
-
-Der Normalfall bleibt eine tischbezogene Bestellung.
-
-Für Rechnungen muss optional ein Zahler gespeichert werden. Wenn der Zahler Bella-Card-berechtigt ist, kann der Rabatt angewendet werden.
-
-Dadurch bleibt die Tischlogik einfach, aber der Rabatt fachlich korrekt.
+angefragt → bestaetigt → geliefert → bezahlt
 
 ---
 
-## 9. MVP-Anforderungen
+## 7. Widersprüche und Auflösungen
 
-Die erste baubare Version soll folgende Funktionen enthalten:
+### W1 — Zwei-Stunden-Planung vs. reale Belegung
 
-* Standorte Kreuzberg und Spandau verwalten
-* Tische je Standort mit Kapazität, Bereich und Kombinierbarkeit speichern
-* Tischkombinationen für Gruppenreservierungen berücksichtigen
-* Reservierungen mit Gast, Telefon, Datum, Uhrzeit, Personenzahl und Status erfassen
-* Tischverfügbarkeit zeitabhängig anzeigen
-* Tischübersicht mit farblichem Status anzeigen:
+Aussage:
 
-  * frei = grün
-  * bald reserviert = gelb, wenn innerhalb der nächsten 60 Minuten eine Reservierung folgt
-  * besetzt = rot
-* Doppelbuchungen verhindern
-* Walk-ins anhand freier Zeitfenster ermöglichen
-* Reservierungen als bestätigt, storniert oder noShow markieren
-* Bestellungen pro Tisch erfassen
-* Bestellpositionen mit Menge und Sonderwunsch erfassen
-* Küche über neue oder geänderte Bestellungen informieren
-* Rechnungen aus Bestellungen erzeugen
-* Stornierte Positionen von Rechnungen ausschließen
-* Gäste mit Stammgast- und Bella-Card-Status speichern
-* Bella-Card-Rabatt nur bei berechtigtem Zahler anwenden
-* Speisekarte als pflegbare Stammdaten verwalten
-* Standortabhängige Artikelverfügbarkeit berücksichtigen
-* Catering-Aufträge mit einfachem Status verwalten
-* Firmenkundenkontakte für Catering speichern
+Für die Planung wird ein Tisch nach zwei Stunden wieder frei. In der Realität werden Gäste aber nicht automatisch rausgeworfen.
+
+Auflösung:
+
+Die App unterscheidet zwischen geplantem Reservierungszeitfenster und realem Tischstatus. Die Reservierung endet geplant nach zwei Stunden. Die reale Belegung bleibt bestehen, bis ein Mitarbeiter den Tisch freigibt. Bei drohender Folgereservierung soll die App warnen.
 
 ---
 
-## 10. Abgrenzungen und Annahmen
+### W2 — Bestellung pro Tisch vs. Bella-Card pro Gast
 
-* Die App ist zunächst nur für interne Mitarbeitende gedacht.
-* Gäste nutzen die App in der ersten Version nicht selbst.
-* Die vollständige Speisekarte wird nicht fest in der SPEC aufgelistet, sondern durch berechtigte Nutzer gepflegt.
-* Alte Reservierungen und alte Bestellungen werden nicht migriert.
-* Stammgäste, Bella-Card-Status und wichtige Firmenkundenkontakte sollen übernommen oder neu eingetragen werden.
-* Die App ersetzt in der ersten Version keine vollständige Kassensoftware.
-* Catering wird berücksichtigt, aber niedriger priorisiert als Reservierungen, Tischübersicht und Bestellungen.
-* Öffnungszeiten und konkrete Tischkombinationen werden als konfigurierbare Stammdaten behandelt und durch Inhaber oder Manager gepflegt.
+Aussage:
+
+Bestellungen laufen normalerweise über den Tisch. Der Bella-Card-Rabatt gehört aber zu einem bestimmten Stammgast.
+
+Auflösung:
+
+Die Bestellung bleibt tischbezogen. Bei der Rechnung kann ein zahlender Gast ausgewählt werden. Wenn dieser Gast eine aktive Bella-Card hat und Inhaber oder Manager den Rabatt bestätigen, wird 15 Prozent Rabatt angewendet.
+
+---
+
+### W3 — Gemeinsame App vs. unterschiedliche Standorte
+
+Aussage:
+
+Der Inhaber möchte beide Standorte in einer App sehen. Gleichzeitig unterscheiden sich Kreuzberg und Spandau bei Kapazität, Terrasse, Laufkundschaft und Speisekarte.
+
+Auflösung:
+
+Die App verwaltet beide Standorte in einem System. Alle operativen Daten sind aber standortgebunden. Übersichten können pro Standort gefiltert werden. Standortregeln, z. B. keine Grillartikel in Spandau, werden in der App berücksichtigt.
+
+---
+
+## 8. Tischübersicht
+
+Die App soll pro Standort und Tag eine einfache Tischübersicht anzeigen.
+
+| Farbe | Bedeutung |
+| --- | --- |
+| grün | Tisch ist frei |
+| gelb | Tisch ist frei, aber innerhalb der nächsten 60 Minuten reserviert |
+| rot | Tisch ist aktuell belegt |
+
+Die Übersicht soll helfen bei:
+
+- Reservierungen
+- Walk-ins
+- Erkennen freier Zeitfenster
+- Verhindern von Doppelbuchungen
+- Warnung vor Folgereservierungen
+
+---
+
+## 9. Phasen
+
+### Phase 1 — Reservierung und Tischplanung
+
+Phase 1 enthält den wichtigsten Kern:
+
+- Standorte
+- Tische
+- Gäste
+- Reservierungen
+- Tischzuordnung
+- Doppelbuchungsschutz
+- Tischübersicht
+- Walk-ins
+- No-Shows
+- Rollenrechte für Reservierung und Tischplanung
+
+Ziel:
+
+Der Reservierungsbetrieb soll ohne Zettelchaos funktionieren.
+
+### Phase 2 — Bestellung und Abrechnung
+
+Phase 2 erweitert die App um:
+
+- Bestellungen pro Tisch
+- Bestellpositionen
+- Küchenstatus
+- Stornos
+- Rechnung
+- Bella-Card-Rabatt
+
+Ziel:
+
+Bestellungen und Rechnungen sollen weniger Fehler verursachen.
+
+### Phase 3 — Erweiterung
+
+Phase 3 enthält:
+
+- Speisekarte verwalten
+- standortabhängige Artikel
+- Gruppenmenü
+- Catering-Aufträge
+- einfache Auswertungen zu No-Shows, Stammgästen und Catering
+
+Ziel:
+
+Der Betrieb soll über Reservierung und Bestellung hinaus strukturierter werden.
+
+---
+
+## 10. Akzeptanzkriterien
+
+### AK1 — Reservierung anlegen
+
+Ein Mitarbeiter mit passender Rolle kann eine Reservierung mit Gast, Telefonnummer, Standort, Beginn, Personenanzahl, Status und Notiz anlegen.
+
+### AK2 — Doppelbuchung verhindern
+
+Wenn ein Tisch für 19:00–21:00 aktiv reserviert ist, darf keine weitere aktive Reservierung für denselben Tisch in einem überlappenden Zeitfenster gespeichert werden.
+
+### AK3 — Tischübersicht anzeigen
+
+Ein Mitarbeiter kann für einen Standort und einen Tag sehen, welche Tische frei, bald reserviert oder belegt sind.
+
+### AK4 — Walk-in platzieren
+
+Ein Walk-in darf nur platziert werden, wenn der Tisch bis zur nächsten Reservierung ausreichend frei ist.
+
+### AK5 — No-Show markieren
+
+Eine bestätigte Reservierung darf nach 15 bis 20 Minuten Verspätung als noShow markiert werden. Danach blockiert sie keinen Tisch mehr.
+
+### AK6 — Bestellung aufnehmen
+
+Bedienung kann für einen Tisch eine Bestellung mit mehreren Positionen aufnehmen.
+
+### AK7 — Rechnung berechnen
+
+Eine Rechnung berechnet den Betrag aus allen nicht stornierten Bestellpositionen.
+
+### AK8 — Bella-Card-Rabatt anwenden
+
+Wenn der Zahler eine aktive Bella-Card hat und Inhaber oder Manager die Freigabe erteilen, wird 15 Prozent Rabatt angewendet.
+
+### AK9 — Spandau-Grillregel
+
+Ein Artikel mit `benoetigtGrill = true` darf in Spandau nicht bestellbar sein.
+
+### AK10 — Cateringauftrag verwalten
+
+Ein Catering-Auftrag kann mit Firma, Ansprechperson, Lieferadresse, Datum, Personenzahl, Menü, Preis und Status gespeichert werden.
+
+---
+
+## 11. Offene Fragen
+
+Diese Punkte sind noch nicht vollständig geklärt:
+
+1. Welche genauen Öffnungszeiten gelten je Standort?
+2. Welche konkreten Tischkombinationen sind in Kreuzberg erlaubt?
+3. Welche konkreten Tischkombinationen sind in Spandau erlaubt?
+4. Soll es Teilrechnungen in der ersten Version geben?
+5. Wie werden Benutzerkonten für Mitarbeitende angelegt?
+6. Welche Geräte werden im Restaurant genutzt?
+7. Muss die App offline funktionieren?
+8. Welche Gastdaten dürfen wie lange gespeichert werden?
+
+Bis diese Fragen geklärt sind, gilt:
+
+- keine öffentliche Online-Reservierung bauen
+- keine Kassenintegration bauen
+- keine Lieferfunktion bauen
+- keine automatische Teilrechnung bauen
+- keine komplexe Auswertung bauen
+- keine nicht bestätigten Geschäftsregeln erfinden
