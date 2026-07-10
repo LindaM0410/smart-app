@@ -1,6 +1,6 @@
 # Backlog — Bella Vista Restaurant-App
 
-_Stand: 3. Juli 2026_
+_Stand: 10. Juli 2026_
 
 _Stabile Feature-IDs. IDs werden nicht umnummeriert oder wiederverwendet. Quelle aller initialen Einträge: `docs/spec.md`._
 
@@ -12,43 +12,107 @@ _Stabile Feature-IDs. IDs werden nicht umnummeriert oder wiederverwendet. Quelle
 | `validated` | fachlich bestätigt, noch nicht implementiert |
 | `in-progress` | aktuell in Umsetzung |
 | `done` | implementiert und verifiziert |
-| `killed` | verworfen; Begründung in `decisions.md` |
+| `killed` | verworfen; Begründung in `docs/decisions.md` |
 
 Die Anforderungen sind aus der Spezifikation übernommen, aber noch nicht durch Nutzerinterviews oder einen Pilot validiert. Deshalb starten sie als `hypo`.
 
-## Features
+## Phase 1 — Kern: Reservierung und Tischplanung
 
-| ID | Name | Phase | Status | Akzeptanzkern |
+Ziel: Der Reservierungsbetrieb soll ohne Zettelchaos funktionieren.
+
+| ID | Feature | Phase | Status | Akzeptanzkern |
 | --- | --- | ---: | --- | --- |
-| BV-001 | Standorte verwalten | 1 | hypo | Kreuzberg und Spandau mit Kapazität und Ausstattung abbilden |
-| BV-002 | Tische verwalten | 1 | hypo | Tische mit Standort, Nummer, Kapazität, Bereich und Kombinierbarkeit pflegen |
-| BV-003 | Tischkombinationen | 1 | hypo | nur konfigurierte Kombinationen desselben Standorts zulassen |
-| BV-004 | Gäste verwalten | 1 | hypo | Gast über Name/Telefon erfassen und wiederfinden |
-| BV-005 | Reservierungen erfassen | 1 | hypo | Gast, Standort, Zeitraum, Personenzahl, Status und Notiz speichern |
-| BV-006 | Tischzuordnung | 1 | hypo | einer Reservierung einen oder mehrere passende Tische zuordnen |
-| BV-007 | Doppelbuchungen verhindern | 1 | hypo | auch bei gleichzeitigen Anfragen höchstens eine überlappende aktive Buchung zulassen |
-| BV-008 | Zeitabhängige Tischübersicht | 1 | hypo | frei grün, innerhalb 60 Minuten reserviert gelb, real besetzt rot anzeigen |
-| BV-009 | Walk-ins | 1 | hypo | spontane Gäste nur innerhalb passender freier Zeitfenster platzieren |
-| BV-010 | Verspätung und No-Show | 1 | hypo | No-Show ab ca. 15–20 Minuten markieren und Tisch wieder freigeben können |
-| BV-011 | Konfliktwarnung bei Belegung | 1 | hypo | 20 Minuten vor Folgereservierung bei fortbestehender Belegung warnen |
-| BV-012 | Gruppenreservierung | 1 | hypo | ab 8 Personen als Gruppe behandeln und Gruppenmenü vorsehen |
-| BV-013 | Rollen und Berechtigungen | 1 | hypo | Inhaber, Manager, Bedienung und Küche gemäß Spezifikation autorisieren |
-| BV-014 | Bestellungen pro Tisch | 2 | hypo | Bedienung kann Bestellung an einem Tisch eröffnen und pflegen |
-| BV-015 | Bestellpositionen | 2 | hypo | Artikel, Menge, Sonderwunsch und Positionsstatus verwalten |
-| BV-016 | Küchenansicht | 2 | hypo | neue/geänderte Positionen und Stornos zeitnah sichtbar machen |
-| BV-017 | Rechnungen erzeugen | 2 | hypo | Rechnung aus nicht stornierten Positionen korrekt berechnen |
-| BV-018 | Bella-Card-Rabatt | 2 | hypo | 15 % nur für berechtigten Zahler mit berechtigter Freigabe anwenden |
-| BV-019 | Storno-Freigabe | 2 | hypo | Bedienung kann ohne Inhaber/Manager kein Storno wirksam freigeben |
-| BV-020 | Speisekarte verwalten | 3 | hypo | Inhaber/Manager können Artikel anlegen, ändern und deaktivieren |
-| BV-021 | Standortangebot | 3 | hypo | nur am Standort aktive Artikel bestellen; keine Grillartikel in Spandau |
-| BV-022 | Firmenkunden | 3 | hypo | Firma, Kontaktperson und Kontaktdaten pflegen und wiederfinden |
-| BV-023 | Catering-Aufträge | 3 | hypo | Auftrag mit Firma, Eventdaten, Menü, Preis und Status verwalten |
-| BV-024 | Catering-Statusfolge | 3 | hypo | angefragt → bestätigt → geliefert → bezahlt kontrolliert durchlaufen |
-| BV-025 | Audit kritischer Aktionen | 1 | hypo | Freigaben, Rabatte, Stornos und sensible Änderungen nachvollziehbar protokollieren |
+| BV-001 | Standorte verwalten | 1 | hypo | Kreuzberg und Spandau mit Adresse, Kapazität, Terrasse, Grillfähigkeit und Aktivstatus abbilden |
+| BV-002 | Tische verwalten | 1 | hypo | Tische mit Standort, Nummer, Kapazität, Bereich, Kombinierbarkeit und Aktivstatus pflegen |
+| BV-003 | Tischkombinationen konfigurieren | 1 | hypo | nur erlaubte Kombinationen von Tischen desselben Standorts speichern und verwenden |
+| BV-004 | Gäste verwalten | 1 | hypo | Gäste mit Name, Telefon, Notiz, Stammgaststatus, Bella-Card-Status, Besuchsanzahl und Aktivstatus erfassen |
+| BV-005 | Reservierungen erfassen | 1 | hypo | Reservierung mit Gast, Standort, Zeitraum, Personenzahl, Status, Notiz, Gruppenkennzeichen und Ersteller speichern |
+| BV-006 | Tische Reservierungen zuordnen | 1 | hypo | einer Reservierung einen oder mehrere passende Tische desselben Standorts zuordnen |
+| BV-007 | Doppelbuchungen verhindern | 1 | hypo | aktive Reservierungen (`angefragt`, `bestaetigt`) duerfen fuer denselben Tisch keine ueberlappenden Zeitfenster haben |
+| BV-008 | Tischuebersicht pro Standort und Tag anzeigen | 1 | hypo | Tische als frei, bald reserviert oder real belegt anzeigen |
+| BV-009 | Walk-ins platzieren | 1 | hypo | spontane Gäste nur platzieren, wenn bis zur nächsten Reservierung ein ausreichendes freies Zeitfenster vorhanden ist |
+| BV-010 | No-Shows erfassen | 1 | hypo | bestätigte Reservierung nach ca. 15 bis 20 Minuten Verspätung als `noShow` markieren und Tischplanung freigeben |
+| BV-011 | Warnung vor Folgereservierung | 1 | hypo | 20 Minuten vor einer Folgereservierung warnen, wenn die reale Belegung noch besteht |
+| BV-012 | Gruppenreservierungen planen | 1 | hypo | Reservierungen ab 8 Personen als Gruppe behandeln und nur Inhaber/Manager Gruppenplanung erlauben |
+| BV-013 | Rollen und Berechtigungen erzwingen | 1 | hypo | Inhaber, Manager, Bedienung und Küche gemäß Rechteübersicht serverseitig autorisieren |
+| BV-025 | Audit kritischer Aktionen | 1 | hypo | Freigaben, Rabatte, Stornos und sensible Änderungen mit Akteur, Zeitpunkt und Änderung nachvollziehbar protokollieren |
+| BV-026 | Mitarbeiter verwalten | 1 | hypo | Mitarbeiter mit Name, Benutzername, Rolle, Hauptstandort und Aktivstatus pflegen |
+| BV-027 | Interne Anmeldung bereitstellen | 1 | hypo | nur aktive Mitarbeitende können die App mit zugeordneter Rolle nutzen |
+| BV-028 | Reale Tischbelegung führen | 1 | hypo | Platzierung und Freigabe eines Tisches getrennt vom geplanten Reservierungsende erfassen |
+| BV-029 | Standortfilter für operative Übersichten | 1 | hypo | operative Ansichten können pro Standort gefiltert werden und zeigen keine vermischten Standortdaten |
+| BV-030 | Reservierungsstatus verwalten | 1 | hypo | Statusfolge und Blockierwirkung von `angefragt`, `bestaetigt`, `storniert`, `noShow`, `abgeschlossen` korrekt anwenden |
+| BV-031 | Standortbindung prüfen | 1 | hypo | Reservierungen, Tische und Mitarbeitendenkontext müssen bei schreibenden Operationen konsistent zum Standort passen |
+
+## Phase 2 — Bestellung und Abrechnung
+
+Ziel: Bestellungen und Rechnungen sollen weniger Fehler verursachen.
+
+| ID | Feature | Phase | Status | Akzeptanzkern |
+| --- | --- | ---: | --- | --- |
+| BV-014 | Bestellungen pro Tisch aufnehmen | 2 | hypo | Bedienung kann an einem Tisch eine Bestellung eröffnen, pflegen und optional einer Reservierung zuordnen |
+| BV-015 | Bestellpositionen verwalten | 2 | hypo | Positionen mit Artikel, Menge, Preis-Snapshot, Sonderwunsch und Status erfassen |
+| BV-016 | Küchenansicht bereitstellen | 2 | hypo | Küche sieht relevante Bestellungen und kann Positionsstatus aktualisieren |
+| BV-017 | Rechnungen erzeugen | 2 | hypo | Rechnung aus Bestellung, Zahler, Zahlungsart und berechenbaren Positionen erzeugen |
+| BV-018 | Bella-Card-Rabatt anwenden | 2 | hypo | 15 % Rabatt nur fuer zahlenden Gast mit aktiver Bella-Card und Freigabe durch Inhaber/Manager anwenden |
+| BV-019 | Storno-Freigabe erzwingen | 2 | hypo | Stornierte Bestellpositionen werden nur mit Freigabe durch Inhaber/Manager wirksam und nachvollziehbar gespeichert |
+| BV-032 | Bestellstatus verwalten | 2 | hypo | Bestellungen können `offen`, `inBearbeitung`, `abgeschlossen`, `bezahlt` oder `storniert` sein |
+| BV-033 | Rechnungsbetrag korrekt berechnen | 2 | hypo | Endbetrag aus nicht stornierten Positionen, Preis-Snapshots und Rabattregel ohne Float-Beträge berechnen |
+| BV-034 | Zahlungsstatus erfassen | 2 | hypo | Rechnungen mit Status `offen`, `bezahlt` oder `storniert` und Zahlungsart `bar` oder `karte` führen |
+| BV-035 | Bestellung und Rechnung standortkonsistent halten | 2 | hypo | Bestellung, Tisch, Reservierung, Artikelverfügbarkeit und Mitarbeitender gehören zum gleichen Standortkontext |
+
+## Phase 3 — Erweiterung
+
+Ziel: Der Betrieb soll über Reservierung und Bestellung hinaus strukturierter werden.
+
+| ID | Feature | Phase | Status | Akzeptanzkern |
+| --- | --- | ---: | --- | --- |
+| BV-020 | Speisekarte verwalten | 3 | hypo | Inhaber/Manager können Artikel mit Name, Kategorie, Preis, Grillbedarf und Aktivstatus anlegen, ändern und deaktivieren |
+| BV-021 | Standortabhängiges Artikelangebot steuern | 3 | hypo | Artikel sind nur an freigegebenen Standorten bestellbar; Grillartikel sind in Spandau nicht bestellbar |
+| BV-022 | Firmenkundenkontakte verwalten | 3 | hypo | Firma, Ansprechperson und Kontaktdaten fuer Catering wiederfinden und pflegen |
+| BV-023 | Catering-Aufträge verwalten | 3 | hypo | Auftrag mit Firma, Kontakt, Lieferadresse, Datum, Uhrzeit, Personenzahl, Menü, Preis und Status speichern |
+| BV-024 | Catering-Statusfolge erzwingen | 3 | hypo | Catering-Aufträge durchlaufen `angefragt` → `bestaetigt` → `geliefert` → `bezahlt` |
+| BV-036 | Gruppenmenü verwalten | 3 | hypo | fuer Gruppenreservierungen kann ein vorgesehenes Gruppenmenü geplant und dokumentiert werden |
+| BV-037 | Einfache No-Show-Auswertung | 3 | hypo | No-Shows lassen sich einfach nach Zeitraum und Standort auswerten |
+| BV-038 | Einfache Stammgast-Auswertung | 3 | hypo | Stammgäste und Bella-Card-Gäste lassen sich einfach finden und auswerten |
+| BV-039 | Einfache Catering-Auswertung | 3 | hypo | Catering-Aufträge lassen sich nach Zeitraum, Status und Firma auswerten |
+
+## Nicht Teil der ersten Version
+
+Diese Punkte sind explizit außerhalb des MVP-Scopes und erhalten deshalb keine Feature-ID fuer die erste Version:
+
+| Thema | Status | Begründung |
+| --- | --- | --- |
+| Öffentliche Online-Reservierung durch Gäste | out-of-scope | Gäste nutzen die App nicht selbst |
+| Lieferung | out-of-scope | nicht Teil des ersten Restaurant-Kernbetriebs |
+| Kassenintegration | out-of-scope | Integration nach MVP klären |
+| Zahlungsanbieter-Integration | out-of-scope | Rechnung und Zahlungsstatus reichen fuer V1 |
+| Vollständige Personalplanung | out-of-scope | Rollen und Mitarbeitende ja, Dienstplanung nein |
+| Automatische Marketingfunktionen | out-of-scope | nicht Ziel der ersten Version |
+| Migration alter Reservierungen und Bestellungen | out-of-scope | alte Zettel und Bestellungen müssen nicht migriert werden |
+| Automatische Teilrechnung | out-of-scope | Teilrechnungen sind noch offene Frage |
+| Komplexe Auswertungen | out-of-scope | nur einfache Auswertungen in Phase 3 |
+
+Alte Stammgastdaten und Firmenkundenkontakte können manuell übernommen werden.
+
+## Offene Fragen aus der Spezifikation
+
+Diese offenen Punkte blockieren keine Feature-ID, müssen aber vor der jeweiligen Umsetzung geklärt oder als Entscheidung dokumentiert werden:
+
+| Frage | Betrifft |
+| --- | --- |
+| Welche genauen Öffnungszeiten gelten je Standort? | BV-008, BV-009, BV-011 |
+| Welche konkreten Tischkombinationen sind in Kreuzberg erlaubt? | BV-003, BV-006, BV-012 |
+| Welche konkreten Tischkombinationen sind in Spandau erlaubt? | BV-003, BV-006, BV-012 |
+| Soll es Teilrechnungen in der ersten Version geben? | BV-017, BV-034 |
+| Wie werden Benutzerkonten für Mitarbeitende angelegt? | BV-026, BV-027 |
+| Welche Geräte werden im Restaurant genutzt? | alle Bedienoberflächen |
+| Muss die App offline funktionieren? | Architekturentscheidung vor Implementierung |
+| Welche Gastdaten dürfen wie lange gespeichert werden? | BV-004, BV-025 |
 
 ## Pflege
 
 - Neue Features erhalten die nächste freie `BV-NNN`-ID.
 - Featurebeginn: Status auf `in-progress`, Branch oder Plan referenzieren.
 - Fertigstellung: Status erst nach Tests auf `done`, Commit referenzieren.
-- Verworfen: Status `killed`, Begründung in `decisions.md`; Zeile bleibt bestehen.
+- Verworfen: Status `killed`, Begründung in `docs/decisions.md`; Zeile bleibt bestehen.
+- Produktänderungen werden zuerst in `docs/spec.md` dokumentiert und anschließend hier synchronisiert.
