@@ -1,6 +1,6 @@
 # Architektur — Bella Vista Restaurant-App
 
-_Stand: 3. Juli 2026 · Status: fachliche Architektur definiert, Tech-Stack offen_
+_Stand: 15. Juli 2026 · Status: fachliche Architektur und technisches Grundgerüst definiert_
 
 ## 1. Architekturziele
 
@@ -30,7 +30,21 @@ Die App ist ein internes System für Inhaber, Manager, Bedienung und Küche. Ext
 
 Module beschreiben fachliche Grenzen. Sie erzwingen weder Microservices noch eine bestimmte Ordnerstruktur. Für den MVP ist ein modularer Monolith die bevorzugte Ausgangshypothese, solange keine Betriebsanforderung dagegen spricht.
 
-## 4. Domänenmodell
+## 4. Technischer Stack
+
+Das Projekt ist als modularer Monolith eingerichtet:
+
+| Bereich | Wahl | Zweck und Grenze |
+| --- | --- | --- |
+| Web-Anwendung | Next.js mit TypeScript und App Router | Server- und Bedienoberflächen in einem Projekt; fachliche Schreiboperationen gehören an serverseitige Systemgrenzen. |
+| Persistenz | SQLite über Prisma ORM | Lokale, relationale Entwicklungs- und MVP-Datenbank mit versionskontrolliertem Prisma-Schema. |
+| Laufzeit | Node.js 22 oder neuer | Lokale Entwicklung und Ausführung der Next.js-Anwendung. |
+
+Die SQLite-Datei ist ausschließlich für lokale Entwicklung und einen einzelnen Anwendungsprozess vorgesehen. Deployment, Backups und ein möglicher Wechsel auf eine serverbasierte relationale Datenbank bleiben offen. Die spätere Konfliktstrategie für Reservierungen muss aktive Zeitfenster in einer atomaren Schreiboperation prüfen und speichern; eine reine Vorab-Leseabfrage genügt nicht.
+
+Das Grundgerüst enthält absichtlich noch kein fachliches Prisma-Datenmodell, keine Authentifizierung und keine Migration. Diese werden erst mit den jeweils zugehörigen Features und ihren Invarianten ergänzt.
+
+## 5. Domänenmodell
 
 Die Entitäten aus `spec.md` bleiben maßgeblich. Für eine umsetzbare Architektur sind folgende Ergänzungen erforderlich:
 
@@ -45,7 +59,7 @@ Die Entitäten aus `spec.md` bleiben maßgeblich. Für eine umsetzbare Architekt
 
 Die Ergänzungen präzisieren die Spezifikation, ändern aber nicht deren Scope. Sie müssen vor Implementierung als Datenmodell-Entscheidung bestätigt werden.
 
-## 5. Zentrale Invarianten
+## 6. Zentrale Invarianten
 
 ### Reservierung
 
@@ -79,7 +93,7 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 - Ein Artikel ist nur bestellbar, wenn er für den Standort aktiv freigegeben ist.
 - Ein Artikel mit `benoetigtGrill = true` ist an einem Standort ohne Grill nicht freigebbar.
 
-## 6. Berechtigungen
+## 7. Berechtigungen
 
 | Fähigkeit | Inhaber | Manager | Bedienung | Küche |
 | --- | :---: | :---: | :---: | :---: |
@@ -93,7 +107,7 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 
 `offen` ist vor Implementierung zu entscheiden. Autorisierung wird an jeder schreibenden Systemgrenze geprüft; ausgeblendete UI-Elemente sind kein Schutz.
 
-## 7. Qualitäts- und Teststrategie
+## 8. Qualitäts- und Teststrategie
 
 - Unit-Tests für Zeitintervall-, Preis-, Rabatt- und Statuslogik.
 - Integrationstests für Datenbank-Invarianten und rollenbasierte Autorisierung.
@@ -102,7 +116,7 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 - Zeitzonentests mit `Europe/Berlin`, einschließlich Sommerzeitwechsel.
 - Audit-Tests für Stornos, Rabattfreigaben und sensible Stammdatenänderungen.
 
-## 8. Sicherheits- und Datenschutzleitplanken
+## 9. Sicherheits- und Datenschutzleitplanken
 
 - So wenig personenbezogene Daten wie fachlich nötig speichern.
 - Passwörter nie im Klartext speichern oder protokollieren.
@@ -111,7 +125,7 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 - Backups, Verschlüsselung, Löschung und Aufbewahrung vor Pilot dokumentieren.
 - Produktionsdaten nicht für lokale Entwicklung oder Tests kopieren.
 
-## 9. Vorgesehene Projektstruktur
+## 10. Projektstruktur
 
 ```text
 .
@@ -123,15 +137,17 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 │   ├── backlog.md
 │   ├── decisions.md
 │   └── modus-operandi.md
-└── src/                 # erst nach Stack-Entscheidung konkretisieren
+├── prisma/
+│   └── schema.prisma     # Datenbankschema und spätere Migrationen
+└── src/
+    ├── app/              # Next.js-Routen und Bedienoberflächen
+    └── lib/              # gemeinsame technische Infrastruktur
 ```
 
-Die spätere Code-Struktur richtet sich an den fachlichen Modulen aus. Framework-spezifische Verzeichnisse werden erst nach einer dokumentierten Stack-Entscheidung angelegt.
+Die spätere Code-Struktur richtet sich innerhalb dieser technischen Verzeichnisse an den fachlichen Modulen aus.
 
-## 10. Offene Architekturentscheidungen
+## 11. Offene Architekturentscheidungen
 
-- Client-/Server- und UI-Technologie
-- relationale Datenbank und konkrete Konflikt-Constraint-Strategie
 - Hosting, Backups, Monitoring und Deployment
 - Authentifizierung, Session-Modell und Benutzerverwaltung
 - Geräte, Browserunterstützung und responsives Bedienkonzept

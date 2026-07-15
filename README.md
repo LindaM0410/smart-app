@@ -11,6 +11,16 @@ Interne Anwendung für Reservierungen, Tischplanung, Bestellungen, Rechnungen, S
 - [`docs/modus-operandi.md`](docs/modus-operandi.md) — Arbeits- und Dokumentationsprozess
 - [`AGENTS.md`](AGENTS.md) — kompaktes Briefing für Coding-Agenten
 
-Der Tech-Stack ist noch nicht entschieden. Vor dem ersten Anwendungscode müssen die offenen Architekturentscheidungen in `docs/architecture.md` geklärt werden.
+## Lokale Entwicklung
+
+Voraussetzung ist Node.js 22 oder neuer.
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Die Datenbankverbindung wird in `.env` über `DATABASE_URL` konfiguriert. Das technische Grundgerüst verwendet Prisma mit SQLite; Details stehen in [`docs/architecture.md`](docs/architecture.md).
 
 `docs/spec.md` übernimmt in diesem Solo-Projekt die Rolle des PRD. Meeting-, Mission-, INBOX- und Results-Artefakte werden nicht geführt.

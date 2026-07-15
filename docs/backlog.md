@@ -43,6 +43,12 @@ Ziel: Der Reservierungsbetrieb soll ohne Zettelchaos funktionieren.
 | BV-030 | Reservierungsstatus verwalten | 1 | hypo | Statusfolge und Blockierwirkung von `angefragt`, `bestaetigt`, `storniert`, `noShow`, `abgeschlossen` korrekt anwenden |
 | BV-031 | Standortbindung prüfen | 1 | hypo | Reservierungen, Tische und Mitarbeitendenkontext müssen bei schreibenden Operationen konsistent zum Standort passen |
 
+## Technisches Grundgerüst
+
+| ID | Feature | Phase | Status | Akzeptanzkern |
+| --- | --- | ---: | --- | --- |
+| BV-040 | Next.js- und Datenbankgrundgerüst | 0 | done | Anwendung startet lokal mit Next.js/TypeScript; Prisma erzeugt einen SQLite-Client aus dem Schema; TypeScript-Prüfung und Produktions-Build laufen erfolgreich (verifiziert am 15.07.2026) |
+
 ## Phase 2 — Bestellung und Abrechnung
 
 Ziel: Bestellungen und Rechnungen sollen weniger Fehler verursachen.

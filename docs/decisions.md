@@ -77,3 +77,17 @@ Es wird noch kein Framework, Datenbanksystem oder Hosting festgelegt. Zuerst wer
 - Agenten laden weniger redundanten Kontext.
 - Produktänderungen werden direkt in `spec.md` dokumentiert und in Backlog, Architektur und Entscheidungslog synchronisiert.
 - Outcome-Dokumentation kann später als neue Entscheidung eingeführt werden, wenn reale Lernzyklen dies rechtfertigen.
+
+## 2026-07-15 — Next.js mit Prisma und SQLite für das technische Grundgerüst
+
+**Kontext:** Für den ersten Anwendungscode benötigt das Projekt einen dokumentierten, lokal ausführbaren Stack. Gleichzeitig sind Hosting, Mehrinstanzbetrieb und Betriebsanforderungen noch nicht entschieden.
+
+### Entscheidung
+
+Die Anwendung wird als Next.js-Modulmonolith mit TypeScript und App Router aufgebaut. Die lokale Persistenz erfolgt über Prisma ORM mit SQLite. Das Prisma-Schema startet bewusst ohne fachliche Modelle; diese folgen nur zusammen mit den zugehörigen Features und Invarianten.
+
+### Konsequenzen
+
+- Das Projekt kann lokal mit einem einheitlichen Web- und Server-Stack weiterentwickelt werden.
+- SQLite ist auf lokale Entwicklung und einen einzelnen Anwendungsprozess begrenzt; für produktiven Mehrinstanzbetrieb ist später eine erneute Datenbankentscheidung nötig.
+- Die Reservierungskonfliktstrategie bleibt eine eigene, vor der Umsetzung von BV-007 zu konkretisierende Datenbank- und Transaktionsentscheidung.
