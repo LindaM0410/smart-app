@@ -1,6 +1,7 @@
 :root {
   color-scheme: light;
   font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
 }
 
 body {
@@ -12,9 +13,221 @@ body {
 main {
   max-width: 56rem;
   margin: 0 auto;
-  padding: 4rem 1.5rem;
+  padding: 3rem 1.5rem 5rem;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
 }
 
 h1 {
-  margin: 0;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1.1;
+}
+
+h2 {
+  margin-bottom: 1.25rem;
+  font-size: 1.35rem;
+}
+
+.seitenkopf {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.kennung {
+  color: #8a3f2b;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.zurueck {
+  display: inline-block;
+  margin-bottom: 2rem;
+  color: #6b3021;
+}
+
+.funktionsliste,
+.standortliste {
+  display: grid;
+  gap: 1rem;
+}
+
+.funktionskarte,
+.karte {
+  border: 1px solid #dfd8d0;
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 0.25rem 1rem rgb(65 43 31 / 6%);
+}
+
+.funktionskarte {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1.25rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.funktionskarte:hover {
+  border-color: #8a3f2b;
+}
+
+.funktionskarte span,
+.seitenkopf > p:last-child {
+  color: #665f59;
+}
+
+.karte {
+  padding: 1.5rem;
+}
+
+.standortliste {
+  margin-top: 2rem;
+}
+
+.kartenkopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.status {
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.status.aktiv {
+  color: #285f35;
+  background: #e7f4e9;
+}
+
+.status.inaktiv {
+  color: #665f59;
+  background: #eeeae6;
+}
+
+.standort-formular {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.standort-formular > label {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.standort-formular > label:nth-of-type(2) {
+  grid-column: span 2;
+}
+
+input {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid #aaa19a;
+  border-radius: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  color: inherit;
+  background: #fff;
+  font: inherit;
+}
+
+input:focus {
+  border-color: #8a3f2b;
+  outline: 2px solid rgb(138 63 43 / 18%);
+}
+
+.auswahlgruppe,
+.formular-abschluss {
+  grid-column: span 2;
+}
+
+.auswahlgruppe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+
+.kontrollfeld {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kontrollfeld input {
+  width: auto;
+}
+
+.formular-abschluss {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+button {
+  border: 0;
+  border-radius: 0.4rem;
+  padding: 0.7rem 1rem;
+  color: #fff;
+  background: #753624;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.fehler {
+  color: #a12b24;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.erfolg {
+  color: #285f35;
+  font-size: 0.9rem;
+}
+
+.leerzustand {
+  border: 1px dashed #c8bfb7;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  color: #665f59;
+}
+
+@media (max-width: 40rem) {
+  main {
+    padding-top: 2rem;
+  }
+
+  .standort-formular {
+    grid-template-columns: 1fr;
+  }
+
+  .standort-formular > label:nth-of-type(2),
+  .auswahlgruppe,
+  .formular-abschluss {
+    grid-column: auto;
+  }
+
+  .formular-abschluss {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

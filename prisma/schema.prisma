@@ -6,3 +6,13 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model Standort {
+  id           String  @id @default(cuid())
+  name         String
+  adresse      String
+  sitzplaetze  Int
+  hatTerrasse  Boolean
+  hatGrill     Boolean
+  aktiv        Boolean @default(true)
+}

@@ -91,3 +91,20 @@ Die Anwendung wird als Next.js-Modulmonolith mit TypeScript und App Router aufge
 - Das Projekt kann lokal mit einem einheitlichen Web- und Server-Stack weiterentwickelt werden.
 - SQLite ist auf lokale Entwicklung und einen einzelnen Anwendungsprozess begrenzt; für produktiven Mehrinstanzbetrieb ist später eine erneute Datenbankentscheidung nötig.
 - Die Reservierungskonfliktstrategie bleibt eine eigene, vor der Umsetzung von BV-007 zu konkretisierende Datenbank- und Transaktionsentscheidung.
+
+## 2026-07-16 — Standortverwaltung als erster fachlicher Slice (BV-001)
+
+**Kontext:** Nach dem technischen Grundgerüst ist die Standortzugehörigkeit die Grundlage für Tische, Reservierungen und weitere operative Daten. BV-001 soll Standorte vollständig verwaltbar machen, ohne den noch offenen Umfang von Authentifizierung und Rollen vorwegzunehmen.
+
+### Entscheidung
+
+Standorte werden als erstes fachliches Prisma-Modell mit Name, Adresse, Sitzplatzanzahl, Terrassenstatus, Grillfähigkeit und Aktivstatus persistiert. Anlage und Bearbeitung erfolgen über serverseitige Aktionen; Pflichtangaben und eine positive ganzzahlige Sitzplatzanzahl werden an dieser Systemgrenze validiert. Standorte werden deaktiviert statt gelöscht, damit ihre Kennung für spätere Beziehungen erhalten bleiben kann.
+
+Die Verwaltung ist bis zur Umsetzung von BV-013 und BV-027 noch nicht rollen- oder anmeldungsgebunden. Diese offene Sicherheitsgrenze wird durch BV-001 nicht stillschweigend entschieden.
+
+### Konsequenzen
+
+- Nachfolgende Features können den Standort über eine stabile ID referenzieren.
+- Kreuzberg und Spandau können einschließlich ihrer unterschiedlichen Kapazität und Ausstattung gepflegt werden.
+- Inaktive Standorte bleiben gespeichert und können wieder aktiviert werden.
+- Validierung, Anlage und Bearbeitung sind automatisiert getestet; Prisma-Schema, TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.
