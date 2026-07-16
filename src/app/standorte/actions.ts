@@ -17,10 +17,6 @@ export type StandortFormularStatus = {
   erfolgreich?: boolean;
 };
 
-export const initialerStandortFormularStatus: StandortFormularStatus = {
-  fehler: {},
-};
-
 function leseEingabe(formular: FormData): StandortEingabe {
   return {
     name: String(formular.get("name") ?? "").trim(),

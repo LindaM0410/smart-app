@@ -22,7 +22,7 @@ Ziel: Der Reservierungsbetrieb soll ohne Zettelchaos funktionieren.
 
 | ID | Feature | Phase | Status | Akzeptanzkern |
 | --- | --- | ---: | --- | --- |
-| BV-001 | Standorte verwalten | 1 | done | Kreuzberg und Spandau mit Adresse, Kapazität, Terrasse, Grillfähigkeit und Aktivstatus abbilden (verifiziert am 16.07.2026) |
+| BV-001 | Standorte verwalten | 1 | done | Kreuzberg und Spandau mit Adresse, Kapazität, Terrasse, Grillfähigkeit und Aktivstatus abbilden; Formular rendert mit lokalem, serialisierbarem Initialstatus ohne Runtime-Fehler (verifiziert am 16.07.2026) |
 | BV-002 | Tische verwalten | 1 | hypo | Tische mit Standort, Nummer, Kapazität, Bereich, Kombinierbarkeit und Aktivstatus pflegen |
 | BV-003 | Tischkombinationen konfigurieren | 1 | hypo | nur erlaubte Kombinationen von Tischen desselben Standorts speichern und verwenden |
 | BV-004 | Gäste verwalten | 1 | hypo | Gäste mit Name, Telefon, Notiz, Stammgaststatus, Bella-Card-Status, Besuchsanzahl und Aktivstatus erfassen |

@@ -3,10 +3,14 @@
 import { useActionState } from "react";
 
 import {
-  initialerStandortFormularStatus,
   standortAnlegen,
   standortBearbeiten,
 } from "./actions";
+import type { StandortFormularStatus } from "./actions";
+
+const initialerStandortFormularStatus: StandortFormularStatus = {
+  fehler: {},
+};
 
 type StandortWerte = {
   id: string;
