@@ -108,3 +108,19 @@ Die Verwaltung ist bis zur Umsetzung von BV-013 und BV-027 noch nicht rollen- od
 - Kreuzberg und Spandau können einschließlich ihrer unterschiedlichen Kapazität und Ausstattung gepflegt werden.
 - Inaktive Standorte bleiben gespeichert und können wieder aktiviert werden.
 - Validierung, Anlage und Bearbeitung sind automatisiert getestet; Prisma-Schema, TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.
+
+## 2026-07-17 — Standortgebundene Tischverwaltung (BV-002)
+
+**Kontext:** Tische sind die Grundlage für Tischzuordnung, Doppelbuchungsschutz und operative Übersichten. BV-002 soll die Tischstammdaten pflegbar machen, ohne Tischkombinationen aus BV-003 vorwegzunehmen.
+
+### Entscheidung
+
+Ein Tisch wird als eigenes Prisma-Modell mit Standort, Nummer, Kapazität, Bereich, Kombinierbarkeit und Aktivstatus persistiert. Jede Tisch-ID referenziert genau einen vorhandenen Standort; die Tischnummer ist innerhalb eines Standorts eindeutig. Pflichtangaben, positive ganzzahlige Kapazität und die Bereiche `innen`, `außen`, `fenster` und `bar` werden an der serverseitigen Systemgrenze validiert. Tische werden deaktiviert statt gelöscht.
+
+Die Eigenschaft `kombinierbar` kennzeichnet nur die grundsätzliche Eignung. Erlaubte konkrete Tischkombinationen bleiben dem separaten Feature BV-003 vorbehalten. Wie bei BV-001 bleibt die Verwaltung bis zur Umsetzung von BV-013 und BV-027 noch ohne Rollen- und Anmeldungsprüfung.
+
+### Konsequenzen
+
+- Nachfolgende Reservierungsfeatures können Tische über stabile IDs und eine erzwungene Standortbeziehung referenzieren.
+- Doppelte Tischnummern an unterschiedlichen Standorten bleiben möglich, am selben Standort werden sie datenbankseitig verhindert.
+- Anlage, Bearbeitung, Validierung, Standortbindung und Eindeutigkeit sind automatisiert getestet; TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.

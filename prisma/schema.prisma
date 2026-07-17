@@ -8,11 +8,26 @@ datasource db {
 }
 
 model Standort {
-  id           String  @id @default(cuid())
-  name         String
-  adresse      String
-  sitzplaetze  Int
-  hatTerrasse  Boolean
-  hatGrill     Boolean
-  aktiv        Boolean @default(true)
+  id          String  @id @default(cuid())
+  name        String
+  adresse     String
+  sitzplaetze Int
+  hatTerrasse Boolean
+  hatGrill    Boolean
+  aktiv       Boolean @default(true)
+  tische      Tisch[]
+}
+
+model Tisch {
+  id           String   @id @default(cuid())
+  standortId   String
+  nummer       String
+  kapazitaet   Int
+  bereich      String
+  kombinierbar Boolean  @default(false)
+  aktiv        Boolean  @default(true)
+  standort     Standort @relation(fields: [standortId], references: [id], onDelete: Restrict)
+
+  @@unique([standortId, nummer])
+  @@index([standortId])
 }

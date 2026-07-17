@@ -13,6 +13,10 @@ export default function Startseite() {
           <strong>Standorte verwalten</strong>
           <span>Adresse, Kapazität und Ausstattung pflegen</span>
         </Link>
+        <Link className="funktionskarte" href="/tische">
+          <strong>Tische verwalten</strong>
+          <span>Standort, Kapazität und Bereich pflegen</span>
+        </Link>
       </nav>
     </main>
   );

@@ -1,6 +1,6 @@
 # Backlog — Bella Vista Restaurant-App
 
-_Stand: 16. Juli 2026_
+_Stand: 17. Juli 2026_
 
 _Stabile Feature-IDs. IDs werden nicht umnummeriert oder wiederverwendet. Quelle aller initialen Einträge: `docs/spec.md`._
 
@@ -23,7 +23,7 @@ Ziel: Der Reservierungsbetrieb soll ohne Zettelchaos funktionieren.
 | ID | Feature | Phase | Status | Akzeptanzkern |
 | --- | --- | ---: | --- | --- |
 | BV-001 | Standorte verwalten | 1 | done | Kreuzberg und Spandau mit Adresse, Kapazität, Terrasse, Grillfähigkeit und Aktivstatus abbilden; Formular rendert mit lokalem, serialisierbarem Initialstatus ohne Runtime-Fehler (verifiziert am 16.07.2026) |
-| BV-002 | Tische verwalten | 1 | hypo | Tische mit Standort, Nummer, Kapazität, Bereich, Kombinierbarkeit und Aktivstatus pflegen |
+| BV-002 | Tische verwalten | 1 | done | Tische mit Standort, standortweit eindeutiger Nummer, positiver Kapazität, gültigem Bereich, Kombinierbarkeit und Aktivstatus pflegen; Standortbindung und Validierung werden server- und datenbankseitig erzwungen (verifiziert am 17.07.2026) |
 | BV-003 | Tischkombinationen konfigurieren | 1 | hypo | nur erlaubte Kombinationen von Tischen desselben Standorts speichern und verwenden |
 | BV-004 | Gäste verwalten | 1 | hypo | Gäste mit Name, Telefon, Notiz, Stammgaststatus, Bella-Card-Status, Besuchsanzahl und Aktivstatus erfassen |
 | BV-005 | Reservierungen erfassen | 1 | hypo | Reservierung mit Gast, Standort, Zeitraum, Personenzahl, Status, Notiz, Gruppenkennzeichen und Ersteller speichern |
