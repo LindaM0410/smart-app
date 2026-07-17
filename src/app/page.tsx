@@ -17,6 +17,10 @@ export default function Startseite() {
           <strong>Tische verwalten</strong>
           <span>Standort, Kapazität und Bereich pflegen</span>
         </Link>
+        <Link className="funktionskarte" href="/gaeste">
+          <strong>Gäste verwalten</strong>
+          <span>Kontaktdaten, Stammgaststatus und Bella-Card pflegen</span>
+        </Link>
       </nav>
     </main>
   );

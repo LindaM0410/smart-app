@@ -124,3 +124,20 @@ Die Eigenschaft `kombinierbar` kennzeichnet nur die grundsätzliche Eignung. Erl
 - Nachfolgende Reservierungsfeatures können Tische über stabile IDs und eine erzwungene Standortbeziehung referenzieren.
 - Doppelte Tischnummern an unterschiedlichen Standorten bleiben möglich, am selben Standort werden sie datenbankseitig verhindert.
 - Anlage, Bearbeitung, Validierung, Standortbindung und Eindeutigkeit sind automatisiert getestet; TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.
+
+## 2026-07-17 — Gästeverwaltung ohne vorgezogene Aufbewahrungsregel (BV-004)
+
+**Kontext:** Gäste sind die notwendige Grundlage für Reservierungen, Stammgastkennzeichnung und die spätere Bella-Card-Prüfung. Die konkreten Datenschutz- und Aufbewahrungsfristen sind noch offen.
+
+### Entscheidung
+
+Ein Gast wird als eigenes Prisma-Modell mit Name, Telefonnummer, Notiz, Stammgaststatus, Bella-Card-Status, Besuchsanzahl und Aktivstatus persistiert. Nur der Name ist fachlich verpflichtend; Telefonnummer und Notiz bleiben optional erfassbar. Die Besuchsanzahl muss an der serverseitigen Systemgrenze eine nicht negative ganze Zahl sein. Gäste werden deaktiviert statt gelöscht.
+
+Eine automatische Löschung oder Aufbewahrungsfrist wird nicht vorweggenommen. Wie bei BV-001 und BV-002 bleibt die Verwaltung bis zur Umsetzung von BV-013 und BV-027 noch ohne Rollen- und Anmeldungsprüfung.
+
+### Konsequenzen
+
+- Reservierungen können künftig einen stabilen Gastdatensatz referenzieren.
+- Stammgast- und Bella-Card-Informationen können gepflegt werden, ohne die spätere Rabattfreigabe aus BV-018 vorwegzunehmen.
+- Vor einem Pilotbetrieb müssen Löschung und Aufbewahrung weiterhin geklärt und dokumentiert werden.
+- Anlage, Bearbeitung und Validierung sind automatisiert getestet; Prisma-Schema, Migration, TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.

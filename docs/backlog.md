@@ -25,7 +25,7 @@ Ziel: Der Reservierungsbetrieb soll ohne Zettelchaos funktionieren.
 | BV-001 | Standorte verwalten | 1 | done | Kreuzberg und Spandau mit Adresse, Kapazität, Terrasse, Grillfähigkeit und Aktivstatus abbilden; Formular rendert mit lokalem, serialisierbarem Initialstatus ohne Runtime-Fehler (verifiziert am 16.07.2026) |
 | BV-002 | Tische verwalten | 1 | done | Tische mit Standort, standortweit eindeutiger Nummer, positiver Kapazität, gültigem Bereich, Kombinierbarkeit und Aktivstatus pflegen; Standortbindung und Validierung werden server- und datenbankseitig erzwungen (verifiziert am 17.07.2026) |
 | BV-003 | Tischkombinationen konfigurieren | 1 | hypo | nur erlaubte Kombinationen von Tischen desselben Standorts speichern und verwenden |
-| BV-004 | Gäste verwalten | 1 | hypo | Gäste mit Name, Telefon, Notiz, Stammgaststatus, Bella-Card-Status, Besuchsanzahl und Aktivstatus erfassen |
+| BV-004 | Gäste verwalten | 1 | done | Gäste mit Name, optionaler Telefonnummer und Notiz, Stammgaststatus, Bella-Card-Status, nicht negativer ganzzahliger Besuchsanzahl und Aktivstatus pflegen; Validierung wird serverseitig erzwungen (verifiziert am 17.07.2026) |
 | BV-005 | Reservierungen erfassen | 1 | hypo | Reservierung mit Gast, Standort, Zeitraum, Personenzahl, Status, Notiz, Gruppenkennzeichen und Ersteller speichern |
 | BV-006 | Tische Reservierungen zuordnen | 1 | hypo | einer Reservierung einen oder mehrere passende Tische desselben Standorts zuordnen |
 | BV-007 | Doppelbuchungen verhindern | 1 | hypo | aktive Reservierungen (`angefragt`, `bestaetigt`) duerfen fuer denselben Tisch keine ueberlappenden Zeitfenster haben |

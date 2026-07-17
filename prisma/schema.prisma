@@ -31,3 +31,14 @@ model Tisch {
   @@unique([standortId, nummer])
   @@index([standortId])
 }
+
+model Gast {
+  id            String  @id @default(cuid())
+  name          String
+  telefon       String
+  notiz         String
+  istStammgast  Boolean @default(false)
+  hatBellaCard  Boolean @default(false)
+  besuchsanzahl Int     @default(0)
+  aktiv         Boolean @default(true)
+}

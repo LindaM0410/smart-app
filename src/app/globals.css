@@ -118,14 +118,16 @@ h2 {
 }
 
 .standort-formular,
-.tisch-formular {
+.tisch-formular,
+.gast-formular {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
 .standort-formular > label,
-.tisch-formular > label {
+.tisch-formular > label,
+.gast-formular > label {
   display: grid;
   align-content: start;
   gap: 0.35rem;
@@ -137,7 +139,8 @@ h2 {
 }
 
 select,
-input {
+input,
+textarea {
   box-sizing: border-box;
   width: 100%;
   border: 1px solid #aaa19a;
@@ -149,13 +152,18 @@ input {
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   border-color: #8a3f2b;
   outline: 2px solid rgb(138 63 43 / 18%);
 }
 
 .auswahlgruppe,
 .formular-abschluss {
+  grid-column: span 2;
+}
+
+.formular-breit {
   grid-column: span 2;
 }
 
@@ -226,11 +234,13 @@ button:disabled {
   }
 
   .standort-formular,
-  .tisch-formular {
+  .tisch-formular,
+  .gast-formular {
     grid-template-columns: 1fr;
   }
 
   .standort-formular > label:nth-of-type(2),
+  .formular-breit,
   .auswahlgruppe,
   .formular-abschluss {
     grid-column: auto;
