@@ -294,6 +294,15 @@ button:disabled {
 .tischstatus.bald-reserviert { color: #6b4b00; background: #fff1c4; }
 .tischstatus.belegt { color: #84251f; background: #f9dfdc; }
 
+.folgereservierungswarnung {
+  border-radius: 0.4rem;
+  padding: 0.65rem 0.75rem;
+  color: #6b3021;
+  background: #fff1c4;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 @media (max-width: 40rem) {
   main {
     padding-top: 2rem;

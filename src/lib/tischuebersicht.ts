@@ -8,6 +8,19 @@ type Statusgrundlage = {
 };
 
 const SECHZIG_MINUTEN = 60 * 60 * 1000;
+const ZWANZIG_MINUTEN = 20 * 60 * 1000;
+
+export function hatWarnungVorFolgereservierung(
+  grundlage: Statusgrundlage,
+  referenzzeit: Date,
+): boolean {
+  if (!grundlage.hatOffeneBelegung) return false;
+
+  const grenze = referenzzeit.getTime() + ZWANZIG_MINUTEN;
+  return grundlage.reservierungsbeginne.some((beginn) =>
+    beginn.getTime() >= referenzzeit.getTime() && beginn.getTime() <= grenze
+  );
+}
 
 export function ermittleTischstatus(
   grundlage: Statusgrundlage,
@@ -67,4 +80,3 @@ export function folgetag(datum: string) {
   const morgen = new Date(Date.UTC(jahr, monat - 1, tag + 1));
   return morgen.toISOString().slice(0, 10);
 }
-

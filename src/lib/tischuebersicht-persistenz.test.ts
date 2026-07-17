@@ -42,10 +42,13 @@ async function erstelleTestdatenbank(t: TestContext) {
     { id: "bald-storniert", tischId: "frei", status: "storniert", beginn: "2026-07-20T17:20:00.000Z" },
     { id: "am-folgetag", tischId: "frei", status: "angefragt", beginn: "2026-07-20T22:00:00.000Z" },
     { id: "belegt-reservierung", tischId: "belegt", status: "abgeschlossen", beginn: "2026-07-20T15:00:00.000Z" },
+    { id: "belegt-folge", tischId: "belegt", status: "angefragt", beginn: "2026-07-20T17:20:00.000Z" },
+    { id: "belegt-storniert", tischId: "belegt", status: "storniert", beginn: "2026-07-20T17:10:00.000Z" },
+    { id: "fremde-folge", tischId: "fremd", status: "bestaetigt", beginn: "2026-07-20T17:10:00.000Z", standortId: "spandau" },
   ];
   for (const eintrag of reservierungen) {
     await datenbank.reservierung.create({ data: {
-      id: eintrag.id, gastId: "gast", standortId: "kreuzberg",
+      id: eintrag.id, gastId: "gast", standortId: eintrag.standortId ?? "kreuzberg",
       beginn: new Date(eintrag.beginn), ende: new Date(new Date(eintrag.beginn).getTime() + 2 * 60 * 60 * 1000),
       personenanzahl: 2, status: eintrag.status, notiz: "", erstelltVonMitarbeiterId: "test",
       tische: { create: { tischId: eintrag.tischId } },
@@ -73,6 +76,30 @@ test("lädt nur aktive Tische des Standorts mit korrekt priorisiertem Zustand", 
     { nummer: "K-03", status: "belegt" },
   ]);
   assert.equal(uebersicht[1].naechsteReservierung?.toISOString(), "2026-07-20T17:30:00.000Z");
+  assert.equal(uebersicht[0].warntVorFolgereservierung, false);
+  assert.equal(uebersicht[1].warntVorFolgereservierung, false);
+  assert.equal(uebersicht[2].warntVorFolgereservierung, true);
+  assert.equal(uebersicht[2].naechsteReservierung?.toISOString(), "2026-07-20T17:20:00.000Z");
+});
+
+test("warnt nach ausdrücklicher Freigabe des Tisches nicht mehr", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await datenbank.belegung.update({
+    where: { id: "offen" },
+    data: { ende: new Date("2026-07-20T17:05:00.000Z") },
+  });
+
+  const uebersicht = await ladeTischuebersicht(
+    datenbank,
+    "kreuzberg",
+    new Date("2026-07-20T17:00:00.000Z"),
+    new Date("2026-07-20T22:00:00.000Z"),
+  );
+
+  assert.equal(
+    uebersicht.find(({ nummer }) => nummer === "K-03")?.warntVorFolgereservierung,
+    false,
+  );
 });
 
 test("bezieht den exakten Tageswechsel nicht in den gewählten Tag ein", async (t) => {
@@ -85,4 +112,3 @@ test("bezieht den exakten Tageswechsel nicht in den gewählten Tag ein", async (
   );
   assert.equal(uebersicht.find(({ nummer }) => nummer === "K-01")?.status, "frei");
 });
-

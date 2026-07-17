@@ -1,6 +1,9 @@
 import type { PrismaClient } from "@prisma/client";
 
-import { ermittleTischstatus } from "./tischuebersicht.ts";
+import {
+  ermittleTischstatus,
+  hatWarnungVorFolgereservierung,
+} from "./tischuebersicht.ts";
 
 const BLOCKIERENDE_STATUS = ["angefragt", "bestaetigt"];
 const SECHZIG_MINUTEN = 60 * 60 * 1000;
@@ -38,15 +41,22 @@ export async function ladeTischuebersicht(
     },
   });
 
-  return tische.map((tisch) => ({
-    id: tisch.id,
-    nummer: tisch.nummer,
-    kapazitaet: tisch.kapazitaet,
-    bereich: tisch.bereich,
-    status: ermittleTischstatus({
+  return tische.map((tisch) => {
+    const statusgrundlage = {
       hatOffeneBelegung: tisch.belegungen.length > 0,
       reservierungsbeginne: tisch.reservierungen.map(({ reservierung }) => reservierung.beginn),
-    }, referenzzeit),
-    naechsteReservierung: tisch.reservierungen[0]?.reservierung.beginn ?? null,
-  }));
+    };
+    return {
+      id: tisch.id,
+      nummer: tisch.nummer,
+      kapazitaet: tisch.kapazitaet,
+      bereich: tisch.bereich,
+      status: ermittleTischstatus(statusgrundlage, referenzzeit),
+      naechsteReservierung: tisch.reservierungen[0]?.reservierung.beginn ?? null,
+      warntVorFolgereservierung: hatWarnungVorFolgereservierung(
+        statusgrundlage,
+        referenzzeit,
+      ),
+    };
+  });
 }

@@ -262,3 +262,22 @@ Rollen, Tischkombinationen, Folgereservierungswarnungen, allgemeine Statusfolgen
 - Walk-ins sind von regulären Reservierungen unterscheidbar, nutzen aber dieselben Zeitfenster- und Standortinvarianten.
 - Die reale Belegung beginnt ausdrücklich mit der erfolgreichen Walk-in-Erfassung und endet weiterhin nur durch Freigabe.
 - Freies Zeitfenster, exakte Intervallgrenze, Kapazität, Standortbindung, offene Belegung, Rollback und konkurrierende Platzierung sind automatisiert getestet; 49 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-17 — Punktbezogene Warnung vor Folgereservierungen (BV-011)
+
+**Kontext:** Eine reale Tischbelegung kann über das geplante Reservierungsende hinaus fortbestehen. Beginnt kurz darauf eine weitere Reservierung für denselben Tisch, benötigt das Personal in der bestehenden Tischübersicht einen deutlichen Hinweis. Öffnungszeiten sind weiterhin nicht festgelegt und dürfen für diese Warnung nicht vorausgesetzt werden.
+
+### Entscheidung
+
+Die Tischübersicht warnt bei einer offenen realen Belegung, wenn eine blockierende Folgereservierung für denselben Tisch ab dem gewählten Betrachtungszeitpunkt innerhalb der nächsten 20 Minuten einschließlich beider Grenzen beginnt. Maßgeblich sind ausschließlich die Status `angefragt` und `bestaetigt`. Nicht blockierende Reservierungsstatus, Reservierungen anderer Tische oder Standorte und Tische ohne offene reale Belegung erzeugen keine Warnung.
+
+Die Warnung wird als abgeleitete Information der bestehenden serverseitigen Leseansicht berechnet und nicht separat persistiert. Sie nennt die Uhrzeit der nächsten relevanten Reservierung und wird zusätzlich zum Tischstatus deutlich in Textform angezeigt. Nach ausdrücklicher Freigabe des Tisches verschwindet sie.
+
+Es werden keine Öffnungszeiten, Rollen, Bestellungen, Rabatte, Rechnungen oder Tischkombinationen eingeführt oder ausgewertet.
+
+### Konsequenzen
+
+- Das Personal erkennt in der Tischübersicht unmittelbar, wenn eine reale Belegung eine in höchstens 20 Minuten beginnende Folgereservierung gefährdet.
+- Die Warnung bleibt konsistent mit der bestehenden Standort-, Status- und Belegungsfilterung und benötigt kein neues Datenmodell.
+- Grenzwerte, fehlende Belegung, nicht blockierende Status, Standorttrennung und das Verschwinden nach Freigabe sind automatisiert getestet.
+- Die vollständige Testsuite mit 52 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

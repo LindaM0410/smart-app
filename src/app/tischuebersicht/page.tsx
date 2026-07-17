@@ -94,6 +94,13 @@ export default async function TischuebersichtSeite({ searchParams }: Eigenschaft
                         timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit",
                       })} Uhr</p>
                     ) : null}
+                    {tisch.warntVorFolgereservierung && tisch.naechsteReservierung ? (
+                      <p className="folgereservierungswarnung" role="status">
+                        Achtung: Folgereservierung um {tisch.naechsteReservierung.toLocaleTimeString("de-DE", {
+                          timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit",
+                        })} Uhr. Tisch ist noch belegt.
+                      </p>
+                    ) : null}
                   </article>
                 );
               })}
@@ -104,4 +111,3 @@ export default async function TischuebersichtSeite({ searchParams }: Eigenschaft
     </main>
   );
 }
-
