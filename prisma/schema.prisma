@@ -55,6 +55,7 @@ model Reservierung {
   ende                     DateTime
   personenanzahl           Int
   status                   String
+  typ                      String              @default("reservierung")
   notiz                    String
   istGruppe                Boolean             @default(false)
   erstelltVonMitarbeiterId String

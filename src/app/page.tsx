@@ -33,6 +33,10 @@ export default function Startseite() {
           <strong>Tischübersicht anzeigen</strong>
           <span>Freie, bald reservierte und belegte Tische sehen</span>
         </Link>
+        <Link className="funktionskarte" href="/walk-ins">
+          <strong>Walk-in platzieren</strong>
+          <span>Spontane Gäste in einem freien Zeitfenster platzieren</span>
+        </Link>
       </nav>
     </main>
   );

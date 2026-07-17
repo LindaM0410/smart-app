@@ -62,7 +62,8 @@ async function erstelleTestdatenbank(t: TestContext) {
     CREATE TABLE "Reservierung" (
       "id" TEXT NOT NULL PRIMARY KEY, "gastId" TEXT NOT NULL, "standortId" TEXT NOT NULL,
       "beginn" DATETIME NOT NULL, "ende" DATETIME NOT NULL, "personenanzahl" INTEGER NOT NULL,
-      "status" TEXT NOT NULL, "notiz" TEXT NOT NULL, "istGruppe" BOOLEAN NOT NULL DEFAULT false,
+      "status" TEXT NOT NULL, "typ" TEXT NOT NULL DEFAULT 'reservierung',
+      "notiz" TEXT NOT NULL, "istGruppe" BOOLEAN NOT NULL DEFAULT false,
       "erstelltVonMitarbeiterId" TEXT NOT NULL,
       FOREIGN KEY ("gastId") REFERENCES "Gast" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
       FOREIGN KEY ("standortId") REFERENCES "Standort" ("id") ON DELETE RESTRICT ON UPDATE CASCADE

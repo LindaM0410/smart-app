@@ -120,7 +120,8 @@ h2 {
 .standort-formular,
 .tisch-formular,
 .gast-formular,
-.reservierung-formular {
+.reservierung-formular,
+.walk-in-formular {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -129,7 +130,8 @@ h2 {
 .standort-formular > label,
 .tisch-formular > label,
 .gast-formular > label,
-.reservierung-formular > label {
+.reservierung-formular > label,
+.walk-in-formular > label {
   display: grid;
   align-content: start;
   gap: 0.35rem;
@@ -300,7 +302,8 @@ button:disabled {
   .standort-formular,
   .tisch-formular,
   .gast-formular,
-  .reservierung-formular {
+  .reservierung-formular,
+  .walk-in-formular {
     grid-template-columns: 1fr;
   }
 

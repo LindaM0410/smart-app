@@ -244,3 +244,21 @@ Die Statusänderung beendet die planende Blockierwirkung der Reservierung. Eine 
 - Die Reservierung kann nach erfolgreicher Markierung keine zeitlich überlappende aktive Reservierung mehr blockieren.
 - Rollenautorisierung, Walk-in-Logik und Änderungen an der Tischübersicht sind nicht Bestandteil dieser Entscheidung.
 - Exakte Fristgrenze, Ausgangsstatus, gesperrte Umgehungswege, Planungsfreigabe und Fortbestand realer Belegung sind automatisiert getestet; vollständige Testsuite, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-17 — Walk-in als atomarer Reservierungs- und Belegungsablauf (BV-009)
+
+**Kontext:** Ein spontaner Gast darf nur platziert werden, wenn ein einzelner Tisch ab dem serverseitigen Erfassungszeitpunkt für die zweistündige Standarddauer ausreichend frei ist. Eine teilweise gespeicherte Reservierung ohne reale Belegung wäre betrieblich irreführend.
+
+### Entscheidung
+
+Walk-ins werden als bestätigte Reservierungen mit dem Typ `walkIn` und dem halb-offenen Planungsintervall `[Erfassungszeitpunkt, Erfassungszeitpunkt + 2 Stunden)` gespeichert. Der Ablauf verwendet einen vorhandenen aktiven Gast sowie genau einen aktiven Tisch mit ausreichender Kapazität am gewählten aktiven Standort. Eine exakt am Planungsende beginnende Reservierung ist zulässig; jede frühere aktive Folgereservierung und jede offene reale Belegung verhindern die Platzierung.
+
+Reservierung, Tischzuordnung und reale Belegung entstehen in einer gemeinsamen Datenbanktransaktion. Die vorhandenen Datenbankregeln für Doppelbuchungen und offene Belegungen sichern den Ablauf zusätzlich bei konkurrierenden Schreibzugriffen. Fehler rollen alle Teilschritte zurück.
+
+Rollen, Tischkombinationen, Folgereservierungswarnungen, allgemeine Statusfolgen, Öffnungszeiten und das Anlegen neuer Gäste innerhalb des Walk-in-Ablaufs sind nicht Bestandteil von BV-009.
+
+### Konsequenzen
+
+- Walk-ins sind von regulären Reservierungen unterscheidbar, nutzen aber dieselben Zeitfenster- und Standortinvarianten.
+- Die reale Belegung beginnt ausdrücklich mit der erfolgreichen Walk-in-Erfassung und endet weiterhin nur durch Freigabe.
+- Freies Zeitfenster, exakte Intervallgrenze, Kapazität, Standortbindung, offene Belegung, Rollback und konkurrierende Platzierung sind automatisiert getestet; 49 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
