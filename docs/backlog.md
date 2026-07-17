@@ -36,7 +36,7 @@ Ziel: Der Reservierungsbetrieb soll ohne Zettelchaos funktionieren.
 | BV-012 | Gruppenreservierungen planen | 1 | hypo | Reservierungen ab 8 Personen als Gruppe behandeln und nur Inhaber/Manager Gruppenplanung erlauben |
 | BV-013 | Rollen und Berechtigungen erzwingen | 1 | hypo | Inhaber, Manager, Bedienung und Küche gemäß Rechteübersicht serverseitig autorisieren |
 | BV-025 | Audit kritischer Aktionen | 1 | hypo | Freigaben, Rabatte, Stornos und sensible Änderungen mit Akteur, Zeitpunkt und Änderung nachvollziehbar protokollieren |
-| BV-026 | Mitarbeiter verwalten | 1 | hypo | Mitarbeiter mit Name, Benutzername, Rolle, Hauptstandort und Aktivstatus pflegen |
+| BV-026 | Mitarbeiter verwalten | 1 | done | Mitarbeiter mit Name, eindeutigem Benutzernamen, einer der vier definierten Rollen, aktivem Hauptstandort und Aktivstatus pflegen; Validierung, Standortbindung und Rollenmenge werden server- bzw. datenbankseitig erzwungen (verifiziert am 17.07.2026) |
 | BV-027 | Interne Anmeldung bereitstellen | 1 | hypo | nur aktive Mitarbeitende können die App mit zugeordneter Rolle nutzen |
 | BV-028 | Reale Tischbelegung führen | 1 | done | Zugeordnete aktive Tische für Reservierungen ausdrücklich platzieren und freigeben; pro Tisch höchstens eine offene, historisierte Belegung, die unabhängig von Planungsende und Reservierungsstatus ausschließlich durch Freigabe endet (verifiziert am 17.07.2026) |
 | BV-029 | Standortfilter für operative Übersichten | 1 | done | Reservierungen, reale Belegungen und Walk-in-Erfassung auf einen gewählten aktiven Standort begrenzen; angezeigte und auswählbare operative Daten anderer Standorte serverseitig ausschließen und die Auswahl nach Aktionen erhalten (verifiziert am 17.07.2026) |
@@ -110,7 +110,7 @@ Diese offenen Punkte blockieren keine Feature-ID, müssen aber vor der jeweilige
 | Welche konkreten Tischkombinationen sind in Kreuzberg erlaubt? | BV-003, BV-006, BV-012 |
 | Welche konkreten Tischkombinationen sind in Spandau erlaubt? | BV-003, BV-006, BV-012 |
 | Soll es Teilrechnungen in der ersten Version geben? | BV-017, BV-034 |
-| Wie werden Benutzerkonten für Mitarbeitende angelegt? | BV-026, BV-027 |
+| Wie werden Benutzerkonten für Mitarbeitende angelegt? | BV-027 |
 | Welche Geräte werden im Restaurant genutzt? | alle Bedienoberflächen |
 | Muss die App offline funktionieren? | Architekturentscheidung vor Implementierung |
 | Welche Gastdaten dürfen wie lange gespeichert werden? | BV-004, BV-025 |

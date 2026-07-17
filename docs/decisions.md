@@ -319,3 +319,20 @@ Es werden keine Rollen, Reservierungsstatusfolgen, Bestellungen, Rabatte oder Re
 - Standortfremde Reservierungen, Tische, Belegungen und Platzierungsoptionen werden serverseitig ausgeschlossen.
 - Ungültige oder inaktive Standortparameter führen nicht zu einer vermischten Ansicht.
 - Standortauswahl und Standorttrennung sind automatisiert getestet; 61 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-17 — Mitarbeiterstammdaten ohne Anmeldung oder Autorisierung (BV-026)
+
+**Kontext:** Mitarbeitende benötigen stabile Stammdaten für spätere Identitäts- und Berechtigungsfunktionen. Das Verfahren für Benutzerkonten und Anmeldung ist weiterhin offen und gehört nicht zu BV-026.
+
+### Entscheidung
+
+Ein Mitarbeiter wird mit Name, global eindeutigem Benutzernamen, Rolle, Hauptstandort und Aktivstatus persistiert. Zulässig sind ausschließlich die Rollen `inhaber`, `manager`, `bedienung` und `kueche`. Der Hauptstandort muss bei jedem Anlegen oder Bearbeiten vorhanden und aktiv sein. Mitarbeitende werden deaktiviert statt gelöscht, damit stabile Kennungen und spätere historische Beziehungen erhalten bleiben können.
+
+Der Benutzername ist in BV-026 ausschließlich ein Stammdatum. Es werden keine Passwörter, Konten, Sitzungen, Anmeldung oder Rechteprüfung eingeführt. Aus der gepflegten Rolle entsteht noch keine Autorisierung.
+
+### Konsequenzen
+
+- Mitarbeiterstammdaten können über eine deutsche Verwaltungsoberfläche angelegt und bearbeitet werden.
+- Eindeutigkeit des Benutzernamens, Rollenmenge und Standortrelation sind datenbankseitig abgesichert; der aktive Hauptstandort wird zusätzlich an der serverseitigen Schreibgrenze geprüft.
+- Anmeldung und Autorisierung bleiben vollständig den separaten späteren Features vorbehalten.
+- Migration, vollständige Testsuite mit 69 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

@@ -120,6 +120,7 @@ h2 {
 .standort-formular,
 .tisch-formular,
 .gast-formular,
+.mitarbeiter-formular,
 .reservierung-formular,
 .walk-in-formular {
   display: grid;
@@ -148,6 +149,7 @@ h2 {
 .standort-formular > label,
 .tisch-formular > label,
 .gast-formular > label,
+.mitarbeiter-formular > label,
 .reservierung-formular > label,
 .walk-in-formular > label {
   display: grid;

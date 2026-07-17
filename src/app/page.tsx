@@ -21,6 +21,10 @@ export default function Startseite() {
           <strong>Gäste verwalten</strong>
           <span>Kontaktdaten, Stammgaststatus und Bella-Card pflegen</span>
         </Link>
+        <Link className="funktionskarte" href="/mitarbeiter">
+          <strong>Mitarbeiter verwalten</strong>
+          <span>Stammdaten, Rolle und Hauptstandort pflegen</span>
+        </Link>
         <Link className="funktionskarte" href="/reservierungen">
           <strong>Reservierungen erfassen</strong>
           <span>Gäste, Zeitraum und Reservierungsstatus pflegen</span>
