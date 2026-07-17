@@ -8,14 +8,15 @@ datasource db {
 }
 
 model Standort {
-  id          String  @id @default(cuid())
-  name        String
-  adresse     String
-  sitzplaetze Int
-  hatTerrasse Boolean
-  hatGrill    Boolean
-  aktiv       Boolean @default(true)
-  tische      Tisch[]
+  id             String         @id @default(cuid())
+  name           String
+  adresse        String
+  sitzplaetze    Int
+  hatTerrasse    Boolean
+  hatGrill       Boolean
+  aktiv          Boolean        @default(true)
+  tische         Tisch[]
+  reservierungen Reservierung[]
 }
 
 model Tisch {
@@ -33,12 +34,32 @@ model Tisch {
 }
 
 model Gast {
-  id            String  @id @default(cuid())
-  name          String
-  telefon       String
-  notiz         String
-  istStammgast  Boolean @default(false)
-  hatBellaCard  Boolean @default(false)
-  besuchsanzahl Int     @default(0)
-  aktiv         Boolean @default(true)
+  id             String         @id @default(cuid())
+  name           String
+  telefon        String
+  notiz          String
+  istStammgast   Boolean        @default(false)
+  hatBellaCard   Boolean        @default(false)
+  besuchsanzahl  Int            @default(0)
+  aktiv          Boolean        @default(true)
+  reservierungen Reservierung[]
+}
+
+model Reservierung {
+  id                       String   @id @default(cuid())
+  gastId                   String
+  standortId               String
+  beginn                   DateTime
+  ende                     DateTime
+  personenanzahl           Int
+  status                   String
+  notiz                    String
+  istGruppe                Boolean  @default(false)
+  erstelltVonMitarbeiterId String
+  gast                     Gast     @relation(fields: [gastId], references: [id], onDelete: Restrict)
+  standort                 Standort @relation(fields: [standortId], references: [id], onDelete: Restrict)
+
+  @@index([gastId])
+  @@index([standortId])
+  @@index([beginn, ende])
 }

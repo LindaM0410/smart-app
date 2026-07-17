@@ -141,3 +141,20 @@ Eine automatische Löschung oder Aufbewahrungsfrist wird nicht vorweggenommen. W
 - Stammgast- und Bella-Card-Informationen können gepflegt werden, ohne die spätere Rabattfreigabe aus BV-018 vorwegzunehmen.
 - Vor einem Pilotbetrieb müssen Löschung und Aufbewahrung weiterhin geklärt und dokumentiert werden.
 - Anlage, Bearbeitung und Validierung sind automatisiert getestet; Prisma-Schema, Migration, TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.
+
+## 2026-07-17 — Reservierungserfassung als eigenständiger Planungsslice (BV-005)
+
+**Kontext:** Nach Standorten und Gästen sollen Reservierungsdaten erstmals persistent erfasst werden. Tischplanung, Konfliktprüfung, operative Übersichten und Autorisierung sind nicht Teil dieses Slices und dürfen nicht vorweggenommen werden.
+
+### Entscheidung
+
+Eine Reservierung wird mit Gast, Standort, Beginn, Ende, Personenanzahl, Status, Notiz, Gruppenkennzeichen und Erstellerkennung persistiert. Gast und Standort werden relational gebunden und müssen beim Schreiben aktiv sein. Ohne explizites Ende setzt die serverseitige Domänenlogik das Planungsende auf Beginn plus zwei Stunden; ein explizites Ende muss nach dem Beginn liegen. Das Gruppenkennzeichen wird ab acht Personen serverseitig abgeleitet und nicht als frei änderbare Formulareingabe akzeptiert.
+
+Bis ein Mitarbeitermodell vorhanden ist, wird die verpflichtende Erstellerkennung als String gespeichert. Daraus werden weder Identität noch Rolle oder Berechtigung abgeleitet. Reservierungen erhalten in diesem Slice keine Tischbeziehung, Konfliktprüfung oder Statusübergangslogik.
+
+### Konsequenzen
+
+- Reservierungen können über eine deutsche Oberfläche angelegt und bearbeitet werden.
+- Nur vorhandene aktive Gäste und Standorte können für neue Schreibvorgänge verwendet werden.
+- Standarddauer, Zeitvalidierung, Personenzahl, Statuswerte, Gruppenkennzeichen und Persistenz sind automatisiert getestet.
+- Migration, vollständige Testsuite, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
