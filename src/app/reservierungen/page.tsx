@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 import { ReservierungFormular } from "./reservierung-formular";
+import { reservierungAlsNoShowMarkieren } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,12 @@ function alsLokalesFormularDatum(datum: Date) {
   return new Date(datum.getTime() - versatz).toISOString().slice(0, 16);
 }
 
-export default async function ReservierungenSeite() {
+export default async function ReservierungenSeite({
+  searchParams,
+}: {
+  searchParams: Promise<{ erfolg?: string; fehler?: string }>;
+}) {
+  const parameter = await searchParams;
   const [gaeste, standorte, tische, reservierungen] = await Promise.all([
     prisma.gast.findMany({ where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
     prisma.standort.findMany({ where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
@@ -38,6 +44,9 @@ export default async function ReservierungenSeite() {
         <h1>Tische Reservierungen zuordnen</h1>
         <p>Reservierungsdaten pflegen und aktive Tische desselben Standorts zuordnen.</p>
       </header>
+
+      {parameter.erfolg ? <p className="erfolg karte" role="status">{parameter.erfolg}</p> : null}
+      {parameter.fehler ? <p className="fehler karte" role="status">{parameter.fehler}</p> : null}
 
       <section className="karte">
         <h2>Neue Reservierung anlegen</h2>
@@ -73,6 +82,13 @@ export default async function ReservierungenSeite() {
                   tischIds: reservierung.tische.map(({ tischId }) => tischId),
                 }}
               />
+              {reservierung.status === "bestaetigt" ? (
+                <form action={reservierungAlsNoShowMarkieren}>
+                  <input name="id" type="hidden" value={reservierung.id} />
+                  <button type="submit">Als No-Show markieren</button>
+                  <p className="sekundaer">Frühestens 15 Minuten nach geplantem Beginn.</p>
+                </form>
+              ) : null}
             </article>
           ))
         )}

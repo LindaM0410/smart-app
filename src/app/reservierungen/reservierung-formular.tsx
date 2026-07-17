@@ -48,6 +48,9 @@ export function ReservierungFormular({
   const kennung = reservierung?.id ?? "neu";
   const [standortId, setStandortId] = useState(reservierung?.standortId ?? "");
   const verfuegbareTische = tische.filter((tisch) => tisch.standortId === standortId);
+  const waehlbareStatus = RESERVIERUNGSSTATUS.filter(
+    (wert) => wert !== "noShow" || reservierung?.status === "noShow",
+  );
 
   return (
     <form action={formularAktion} className="reservierung-formular">
@@ -123,7 +126,7 @@ export function ReservierungFormular({
       <label>
         Status
         <select defaultValue={reservierung?.status ?? "angefragt"} name="status" required>
-          {RESERVIERUNGSSTATUS.map((wert) => (
+          {waehlbareStatus.map((wert) => (
             <option key={wert} value={wert}>{statusBezeichnungen[wert]}</option>
           ))}
         </select>

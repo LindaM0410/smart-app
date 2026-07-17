@@ -227,3 +227,20 @@ Die Ansicht nimmt keine Platzierung oder andere Schreiboperation vor. Sie führt
 - Nicht blockierende Reservierungsstatus, inaktive Tische und Daten anderer Standorte beeinflussen die Übersicht nicht.
 - Sommerzeit, Winterzeit, 60-Minuten-Grenzen, Zustandspriorität, Statusfilterung, Standorttrennung und Tageswechsel sind automatisiert getestet.
 - Die vollständige Testsuite, TypeScript-Prüfung und der Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-17 — Manuelle No-Show-Markierung nach 15 Minuten (BV-010)
+
+**Kontext:** Die Spezifikation erlaubt, eine bestätigte Reservierung nach 15 bis 20 Minuten Verspätung als No-Show zu markieren. Für eine deterministische serverseitige Prüfung benötigt die Anwendung eine eindeutige Frist.
+
+### Entscheidung
+
+Eine bestätigte Reservierung darf frühestens 15 Minuten nach ihrem geplanten Beginn manuell als `noShow` markiert werden. Maßgeblich ist der Zeitpunkt der serverseitigen Fachoperation. Es gibt keine automatische No-Show-Erkennung.
+
+Die Statusänderung beendet die planende Blockierwirkung der Reservierung. Eine gegebenenfalls vorhandene reale Tischbelegung bleibt bestehen und kann weiterhin nur ausdrücklich freigegeben werden.
+
+### Konsequenzen
+
+- Vor Erreichen der Frist und bei jedem anderen Ausgangsstatus wird die Statusänderung serverseitig abgewiesen.
+- Die Reservierung kann nach erfolgreicher Markierung keine zeitlich überlappende aktive Reservierung mehr blockieren.
+- Rollenautorisierung, Walk-in-Logik und Änderungen an der Tischübersicht sind nicht Bestandteil dieser Entscheidung.
+- Exakte Fristgrenze, Ausgangsstatus, gesperrte Umgehungswege, Planungsfreigabe und Fortbestand realer Belegung sind automatisiert getestet; vollständige Testsuite, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

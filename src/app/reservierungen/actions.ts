@@ -2,10 +2,16 @@
 
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import {
   aktualisiereReservierung,
   erstelleReservierung,
+  markiereReservierungAlsNoShow,
+  NoShowAusgangsstatusFehler,
+  NoShowFristFehler,
+  NoShowReservierungNichtGefundenFehler,
+  NoShowUngepruefterStatuswechselFehler,
   ReservierungKonfliktfehler,
   ReservierungReferenzfehler,
 } from "@/lib/reservierung-persistenz";
@@ -46,6 +52,9 @@ function leseEingabe(formular: FormData): ReservierungEingabe {
 }
 
 function persistenzfehler(error: unknown): ReservierungFormularStatus | undefined {
+  if (error instanceof NoShowUngepruefterStatuswechselFehler) {
+    return { fehler: { status: error.message }, meldung: error.message };
+  }
   if (error instanceof ReservierungKonfliktfehler) {
     return {
       fehler: { tischIds: error.message },
@@ -126,4 +135,35 @@ export async function reservierungBearbeiten(
 
   revalidatePath("/reservierungen");
   return { fehler: {}, meldung: "Änderungen wurden gespeichert.", erfolgreich: true };
+}
+
+function noShowZiel(meldung: string, erfolgreich = false) {
+  return `/reservierungen?${erfolgreich ? "erfolg" : "fehler"}=${encodeURIComponent(meldung)}`;
+}
+
+export async function reservierungAlsNoShowMarkieren(formular: FormData) {
+  const id = String(formular.get("id") ?? "").trim();
+  let weiterleitung: string;
+
+  if (!id) {
+    weiterleitung = noShowZiel("Die Reservierung konnte nicht gefunden werden.");
+  } else {
+    try {
+      await markiereReservierungAlsNoShow(prisma, id);
+      revalidatePath("/reservierungen");
+      weiterleitung = noShowZiel("Die Reservierung wurde als No-Show markiert.", true);
+    } catch (fehler) {
+      if (
+        fehler instanceof NoShowAusgangsstatusFehler ||
+        fehler instanceof NoShowFristFehler ||
+        fehler instanceof NoShowReservierungNichtGefundenFehler
+      ) {
+        weiterleitung = noShowZiel(fehler.message);
+      } else {
+        throw fehler;
+      }
+    }
+  }
+
+  redirect(weiterleitung);
 }

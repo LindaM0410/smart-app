@@ -32,7 +32,35 @@ export class ReservierungKonfliktfehler extends Error {
   }
 }
 
+export class NoShowReservierungNichtGefundenFehler extends Error {
+  constructor() {
+    super("Die Reservierung konnte nicht gefunden werden.");
+  }
+}
+
+export class NoShowAusgangsstatusFehler extends Error {
+  constructor() {
+    super("Nur eine bestätigte Reservierung kann als No-Show markiert werden.");
+  }
+}
+
+export class NoShowFristFehler extends Error {
+  readonly fristEnde: Date;
+
+  constructor(fristEnde: Date) {
+    super("Die Reservierung kann erst 15 Minuten nach dem geplanten Beginn als No-Show markiert werden.");
+    this.fristEnde = fristEnde;
+  }
+}
+
+export class NoShowUngepruefterStatuswechselFehler extends Error {
+  constructor() {
+    super("Bitte die eigene Aktion zum Markieren als No-Show verwenden.");
+  }
+}
+
 const BLOCKIERENDE_STATUS = ["angefragt", "bestaetigt"];
+const NO_SHOW_FRIST_IN_MS = 15 * 60 * 1000;
 
 type Datenbank = PrismaClient | Prisma.TransactionClient;
 
@@ -130,6 +158,9 @@ export async function erstelleReservierung(
   datenbank: PrismaClient,
   eingabe: NormalisierteReservierungEingabe,
 ) {
+  if (eingabe.status === "noShow") {
+    throw new NoShowUngepruefterStatuswechselFehler();
+  }
   try {
     return await datenbank.$transaction(async (transaktion) => {
       await pruefeAktiveReferenzen(transaktion, eingabe);
@@ -154,6 +185,14 @@ export async function aktualisiereReservierung(
 ) {
   try {
     return await datenbank.$transaction(async (transaktion) => {
+      const vorhanden = await transaktion.reservierung.findUnique({
+        where: { id },
+        select: { status: true },
+      });
+      if (!vorhanden) throw new NoShowReservierungNichtGefundenFehler();
+      if (eingabe.status === "noShow" && vorhanden.status !== "noShow") {
+        throw new NoShowUngepruefterStatuswechselFehler();
+      }
       await pruefeAktiveReferenzen(transaktion, eingabe);
       await wirfBeiKonflikt(transaktion, eingabe, id);
       const { tischIds, ...daten } = eingabe;
@@ -175,4 +214,30 @@ export async function aktualisiereReservierung(
     }
     throw fehler;
   }
+}
+
+export async function markiereReservierungAlsNoShow(
+  datenbank: PrismaClient,
+  id: string,
+  zeitpunkt = new Date(),
+) {
+  const fristBeginn = new Date(zeitpunkt.getTime() - NO_SHOW_FRIST_IN_MS);
+  const ergebnis = await datenbank.reservierung.updateMany({
+    where: { id, status: "bestaetigt", beginn: { lte: fristBeginn } },
+    data: { status: "noShow" },
+  });
+
+  if (ergebnis.count === 1) {
+    return datenbank.reservierung.findUniqueOrThrow({ where: { id } });
+  }
+
+  const reservierung = await datenbank.reservierung.findUnique({
+    where: { id },
+    select: { beginn: true, status: true },
+  });
+  if (!reservierung) throw new NoShowReservierungNichtGefundenFehler();
+  if (reservierung.status !== "bestaetigt") throw new NoShowAusgangsstatusFehler();
+  throw new NoShowFristFehler(
+    new Date(reservierung.beginn.getTime() + NO_SHOW_FRIST_IN_MS),
+  );
 }

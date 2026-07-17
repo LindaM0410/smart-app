@@ -10,6 +10,10 @@ import { PrismaClient } from "@prisma/client";
 import {
   aktualisiereReservierung,
   erstelleReservierung,
+  markiereReservierungAlsNoShow,
+  NoShowAusgangsstatusFehler,
+  NoShowFristFehler,
+  NoShowUngepruefterStatuswechselFehler,
   ReservierungKonfliktfehler,
   ReservierungReferenzfehler,
 } from "./reservierung-persistenz.ts";
@@ -70,6 +74,14 @@ async function erstelleTestdatenbank(t: TestContext) {
       PRIMARY KEY ("reservierungId", "tischId"),
       FOREIGN KEY ("reservierungId") REFERENCES "Reservierung" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
       FOREIGN KEY ("tischId") REFERENCES "Tisch" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    )
+  `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TABLE "Belegung" (
+      "id" TEXT NOT NULL PRIMARY KEY, "tischId" TEXT NOT NULL, "reservierungId" TEXT NOT NULL,
+      "beginn" DATETIME NOT NULL, "ende" DATETIME,
+      FOREIGN KEY ("tischId") REFERENCES "Tisch" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+      FOREIGN KEY ("reservierungId") REFERENCES "Reservierung" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
     )
   `);
   await datenbank.$executeRawUnsafe(`
@@ -271,7 +283,7 @@ test("verhindert überlappende aktive Reservierungen für denselben Tisch", asyn
   assert.equal(await datenbank.reservierung.count(), 1);
 });
 
-test("behandelt Zeitfenster halb-offen und nicht blockierende Status korrekt", async (t) => {
+test("behandelt Zeitfenster halb-offen und weitere nicht blockierende Status korrekt", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
   await erstelleReservierung(datenbank, eingabe);
 
@@ -281,7 +293,7 @@ test("behandelt Zeitfenster halb-offen und nicht blockierende Status korrekt", a
     ende: new Date("2026-07-20T21:00:00.000Z"),
   });
 
-  for (const status of ["storniert", "noShow", "abgeschlossen"] as const) {
+  for (const status of ["storniert", "abgeschlossen"] as const) {
     await erstelleReservierung(datenbank, {
       ...eingabe,
       status,
@@ -290,7 +302,7 @@ test("behandelt Zeitfenster halb-offen und nicht blockierende Status korrekt", a
     });
   }
 
-  assert.equal(await datenbank.reservierung.count(), 5);
+  assert.equal(await datenbank.reservierung.count(), 4);
 });
 
 test("prüft bei mehreren Tischen jeden Tisch und ignoriert sich beim Bearbeiten selbst", async (t) => {
@@ -332,4 +344,98 @@ test("lässt bei zwei parallelen Doppelbuchungen genau eine erfolgreich speicher
 
   assert.equal(ergebnisse.filter(({ status }) => status === "fulfilled").length, 1);
   assert.equal(await datenbank.reservierung.count(), 1);
+});
+
+test("markiert eine bestätigte Reservierung ab exakt 15 Minuten als No-Show", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const reservierung = await erstelleReservierung(datenbank, {
+    ...eingabe,
+    status: "bestaetigt",
+  });
+
+  const aktualisiert = await markiereReservierungAlsNoShow(
+    datenbank,
+    reservierung.id,
+    new Date("2026-07-20T17:15:00.000Z"),
+  );
+
+  assert.equal(aktualisiert.status, "noShow");
+});
+
+test("weist die No-Show-Markierung vor Ablauf der 15-Minuten-Frist zurück", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const reservierung = await erstelleReservierung(datenbank, {
+    ...eingabe,
+    status: "bestaetigt",
+  });
+
+  await assert.rejects(
+    markiereReservierungAlsNoShow(
+      datenbank,
+      reservierung.id,
+      new Date("2026-07-20T17:14:59.999Z"),
+    ),
+    (fehler) =>
+      fehler instanceof NoShowFristFehler &&
+      fehler.fristEnde.toISOString() === "2026-07-20T17:15:00.000Z",
+  );
+  assert.equal(
+    (await datenbank.reservierung.findUniqueOrThrow({ where: { id: reservierung.id } })).status,
+    "bestaetigt",
+  );
+});
+
+test("weist andere Ausgangsstatus und den ungeprüften Bearbeitungsweg zurück", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const angefragt = await erstelleReservierung(datenbank, eingabe);
+
+  await assert.rejects(
+    markiereReservierungAlsNoShow(
+      datenbank,
+      angefragt.id,
+      new Date("2026-07-20T18:00:00.000Z"),
+    ),
+    NoShowAusgangsstatusFehler,
+  );
+  await assert.rejects(
+    aktualisiereReservierung(datenbank, angefragt.id, { ...eingabe, status: "noShow" }),
+    NoShowUngepruefterStatuswechselFehler,
+  );
+  await assert.rejects(
+    erstelleReservierung(datenbank, { ...eingabe, status: "noShow" }),
+    NoShowUngepruefterStatuswechselFehler,
+  );
+});
+
+test("gibt nach der No-Show-Markierung die Planung frei und lässt reale Belegung offen", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const reservierung = await erstelleReservierung(datenbank, {
+    ...eingabe,
+    status: "bestaetigt",
+  });
+  await datenbank.belegung.create({
+    data: {
+      id: "belegung-offen",
+      tischId: "tisch-1",
+      reservierungId: reservierung.id,
+      beginn: new Date("2026-07-20T17:05:00.000Z"),
+    },
+  });
+
+  await markiereReservierungAlsNoShow(
+    datenbank,
+    reservierung.id,
+    new Date("2026-07-20T17:15:00.000Z"),
+  );
+  await erstelleReservierung(datenbank, {
+    ...eingabe,
+    beginn: new Date("2026-07-20T17:30:00.000Z"),
+    ende: new Date("2026-07-20T18:30:00.000Z"),
+  });
+
+  const belegung = await datenbank.belegung.findUniqueOrThrow({
+    where: { id: "belegung-offen" },
+  });
+  assert.equal(belegung.ende, null);
+  assert.equal(await datenbank.reservierung.count(), 2);
 });
