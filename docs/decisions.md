@@ -191,3 +191,20 @@ Die Datenbankprüfung gilt ausschließlich für die blockierenden Status `angefr
 - Doppelbuchungen werden auch bei konkurrierenden Schreibversuchen nicht persistiert.
 - Formularfehler können Tisch und Konfliktzeitraum verständlich benennen.
 - Anlage, Bearbeitung, Statuswirkung, mehrere Tische, Intervallgrenzen und parallele Schreibversuche sind automatisiert getestet.
+
+## 2026-07-17 — Reale Tischbelegung als eigener Lebenszyklus (BV-028)
+
+**Kontext:** Das geplante Ende einer Reservierung bedeutet nicht, dass der Tisch tatsächlich frei ist. BV-028 soll Platzierung und Freigabe erfassen, ohne Tischübersicht, Walk-ins, Warnungen, No-Show-Automatik, Rollen oder Statusfolgen vorwegzunehmen.
+
+### Entscheidung
+
+Eine reale Belegung wird als eigener Datensatz mit Tisch, zugehöriger Reservierung, Beginn und optionalem Ende persistiert. In diesem Slice kann ausschließlich ein aktiver Tisch platziert werden, der der Reservierung bereits zugeordnet ist. Pro Tisch darf datenbankseitig höchstens eine Belegung ohne Endzeit bestehen. Die Freigabe setzt explizit die Endzeit; weder das geplante Reservierungsende noch eine Änderung des Reservierungsstatus beendet eine Belegung automatisch.
+
+Belegungen werden nicht gelöscht, damit Beginn und tatsächliche Freigabe erhalten bleiben. Walk-ins erhalten in BV-028 bewusst keinen alternativen Platzierungsweg; dieser bleibt BV-009 vorbehalten. Die Bedienseite führt konkrete Platzierungs- und Freigabeaktionen aus, berechnet aber keine Zustände der Tischübersicht aus BV-008.
+
+### Konsequenzen
+
+- Planungszeitraum und reale Nutzung eines Tisches sind technisch und fachlich getrennt.
+- Gleichzeitige offene Belegungen desselben Tisches werden durch einen partiellen eindeutigen SQLite-Index verhindert.
+- Die Reservierung-Tisch-Zuordnung und der Aktivstatus des Tisches werden beim Anlegen an der serverseitigen Systemgrenze und zusätzlich durch einen SQLite-Trigger geprüft.
+- Platzierung, Doppelbelegung, explizite Freigabe, Historie und Fortbestand über Planungsende beziehungsweise Statusänderung hinaus sind automatisiert getestet.

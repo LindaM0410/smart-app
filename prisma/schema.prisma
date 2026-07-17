@@ -29,6 +29,7 @@ model Tisch {
   aktiv          Boolean             @default(true)
   standort       Standort            @relation(fields: [standortId], references: [id], onDelete: Restrict)
   reservierungen ReservierungTisch[]
+  belegungen     Belegung[]
 
   @@unique([standortId, nummer])
   @@index([standortId])
@@ -60,10 +61,24 @@ model Reservierung {
   gast                     Gast                @relation(fields: [gastId], references: [id], onDelete: Restrict)
   standort                 Standort            @relation(fields: [standortId], references: [id], onDelete: Restrict)
   tische                   ReservierungTisch[]
+  belegungen               Belegung[]
 
   @@index([gastId])
   @@index([standortId])
   @@index([beginn, ende])
+}
+
+model Belegung {
+  id              String        @id @default(cuid())
+  tischId         String
+  reservierungId  String
+  beginn          DateTime      @default(now())
+  ende            DateTime?
+  tisch           Tisch         @relation(fields: [tischId], references: [id], onDelete: Restrict)
+  reservierung    Reservierung  @relation(fields: [reservierungId], references: [id], onDelete: Restrict)
+
+  @@index([tischId, ende])
+  @@index([reservierungId])
 }
 
 model ReservierungTisch {

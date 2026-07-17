@@ -25,6 +25,10 @@ export default function Startseite() {
           <strong>Reservierungen erfassen</strong>
           <span>Gäste, Zeitraum und Reservierungsstatus pflegen</span>
         </Link>
+        <Link className="funktionskarte" href="/belegungen">
+          <strong>Reale Tischbelegung führen</strong>
+          <span>Reservierte Tische platzieren und ausdrücklich freigeben</span>
+        </Link>
       </nav>
     </main>
   );
