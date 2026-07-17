@@ -9,6 +9,7 @@ import {
 } from "@/lib/artikelangebot-persistenz";
 import {
   hatArtikelValidierungsfehler,
+  parsePreisCent,
   validiereArtikel,
   type ArtikelEingabe,
   type ArtikelValidierungsfehler,
@@ -25,7 +26,7 @@ function leseEingabe(formular: FormData): ArtikelEingabe {
   return {
     name: String(formular.get("name") ?? "").trim(),
     kategorie: String(formular.get("kategorie") ?? "").trim(),
-    preisCent: Number(formular.get("preisCent")),
+    preisCent: parsePreisCent(String(formular.get("preis") ?? "")),
     benoetigtGrill: formular.get("benoetigtGrill") === "on",
     aktiv: formular.get("aktiv") === "on",
   };

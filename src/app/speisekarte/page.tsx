@@ -19,7 +19,7 @@ export default async function SpeisekarteSeite() {
       <header className="seitenkopf">
         <p className="kennung">BV-020</p>
         <h1>Speisekarte verwalten</h1>
-        <p>Artikel, Centpreise und Standortfreigaben pflegen.</p>
+        <p>Artikel, Preise in Euro und Cent sowie Standortfreigaben pflegen.</p>
       </header>
       <section className="karte">
         <h2>Neuen Artikel anlegen</h2>

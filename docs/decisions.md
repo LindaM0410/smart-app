@@ -371,3 +371,18 @@ Standortfreigaben werden gemeinsam mit den Artikeldaten in einer Transaktion gep
 - Ungültige Standort- oder Grillzuordnungen hinterlassen keine teilweise gespeicherten Änderungen.
 - Es werden keine Kategorienentität, Bestellungen, Bestellpositionen, Rechnungen oder Beispiel- und Seed-Daten eingeführt.
 - Migration, vollständige Testsuite mit 78 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-18 — Euro-und-Cent-Eingabe für Speisekartenpreise (BV-020)
+
+**Kontext:** Die Speisekartenverwaltung verlangte von Mitarbeitenden einen technischen Centbetrag wie `1250`, obwohl Preise fachlich als `12,50 €` erfasst werden sollen. Die Speicherung als ganzzahliger Centbetrag bleibt für exakte Geldberechnungen richtig.
+
+### Entscheidung
+
+Die Speisekarte nimmt nicht negative Preise im deutschen Dezimalformat mit Komma und höchstens zwei Nachkommastellen entgegen. Die serverseitige Eingabegrenze wandelt die Zeichenfolge ohne Fließkommarechnung in einen ganzzahligen Centbetrag um; Anzeige und Bearbeitungsformular stellen den Betrag mit zwei Nachkommastellen dar. Die Persistenz bleibt unverändert in Cent.
+
+### Konsequenzen
+
+- Ein Preis kann beispielsweise als `12,50` eingegeben und als `12,50 €` angezeigt werden.
+- Leere, negative, nicht numerische Eingaben und mehr als zwei Nachkommastellen werden abgewiesen.
+- Preisberechnung und Persistenz verwenden weiterhin keine Fließkommazahlen.
+- Vollständige Testsuite mit 80 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

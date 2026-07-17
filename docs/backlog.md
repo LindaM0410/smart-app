@@ -1,6 +1,6 @@
 # Backlog — Bella Vista Restaurant-App
 
-_Stand: 17. Juli 2026_
+_Stand: 18. Juli 2026_
 
 _Stabile Feature-IDs. IDs werden nicht umnummeriert oder wiederverwendet. Quelle aller initialen Einträge: `docs/spec.md`._
 
@@ -72,7 +72,7 @@ Ziel: Der Betrieb soll über Reservierung und Bestellung hinaus strukturierter w
 
 | ID | Feature | Phase | Status | Akzeptanzkern |
 | --- | --- | ---: | --- | --- |
-| BV-020 | Speisekarte verwalten | 3 | done | Artikel mit Name, Kategorie, ganzzahligem Centpreis, Grillbedarf, Aktivstatus und Standortfreigaben anlegen, bearbeiten und deaktivieren; BV-021-Regeln werden server- und datenbankseitig bewahrt; ausstehende Migrationen werden vor dem lokalen Dev-Start angewendet (Bugfix verifiziert am 17.07.2026) |
+| BV-020 | Speisekarte verwalten | 3 | done | Artikel mit Name, Kategorie, centgenauem Preis im deutschen Euroformat, Grillbedarf, Aktivstatus und Standortfreigaben anlegen, bearbeiten und deaktivieren; BV-021-Regeln werden server- und datenbankseitig bewahrt (Euro-und-Cent-Eingabe mit 80 Tests, TypeScript-Prüfung und Produktions-Build verifiziert am 18.07.2026) |
 | BV-021 | Standortabhängiges Artikelangebot steuern | 3 | done | Aktive Artikel werden mit ganzzahligen Centpreisen ausdrücklich aktiven Standorten zugeordnet und pro Standort gelesen; Grillartikel können server- und datenbankseitig nur Standorten mit Grill zugeordnet werden, bestehende Angebote bleiben bei Änderungen gültig (verifiziert am 17.07.2026) |
 | BV-022 | Firmenkundenkontakte verwalten | 3 | hypo | Firma, Ansprechperson und Kontaktdaten fuer Catering wiederfinden und pflegen |
 | BV-023 | Catering-Aufträge verwalten | 3 | hypo | Auftrag mit Firma, Kontakt, Lieferadresse, Datum, Uhrzeit, Personenzahl, Menü, Preis und Status speichern |

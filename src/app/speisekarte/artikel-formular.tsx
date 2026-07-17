@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 
+import { formatierePreiseingabe } from "@/lib/artikel";
+
 import { artikelAnlegen, artikelBearbeiten, type ArtikelFormularStatus } from "./actions";
 
 const initialerStatus: ArtikelFormularStatus = { fehler: {} };
@@ -38,8 +40,17 @@ export function ArtikelFormular({ artikel, standorte }: { artikel?: ArtikelWerte
         {status.fehler.kategorie ? <span className="fehler" id={`${kennung}-kategorie-fehler`}>{status.fehler.kategorie}</span> : null}
       </label>
       <label>
-        Preis in Cent
-        <input aria-describedby={status.fehler.preisCent ? `${kennung}-preis-fehler` : undefined} defaultValue={artikel?.preisCent ?? 0} min="0" name="preisCent" required step="1" type="number" />
+        Preis in Euro (€)
+        <input
+          aria-describedby={status.fehler.preisCent ? `${kennung}-preis-fehler` : undefined}
+          defaultValue={artikel ? formatierePreiseingabe(artikel.preisCent) : ""}
+          inputMode="decimal"
+          name="preis"
+          pattern="[0-9]+(,[0-9]{1,2})?"
+          placeholder="12,50"
+          required
+          type="text"
+        />
         {status.fehler.preisCent ? <span className="fehler" id={`${kennung}-preis-fehler`}>{status.fehler.preisCent}</span> : null}
       </label>
       <div className="auswahlgruppe">

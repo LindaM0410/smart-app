@@ -216,7 +216,7 @@ Ein Artikel ist ein Speisekartenartikel.
 | id | string | eindeutige ID |
 | name | string | Name des Artikels |
 | kategorie | string | z. B. Pasta, Getränk, Dessert |
-| preis | decimal | Preis |
+| preis | decimal | nicht negativer Preis, centgenau eingebbar und im deutschen Format `12,50 €` darstellbar |
 | benoetigtGrill | boolean | ob Grill erforderlich ist |
 | verfuegbarInStandortIds | list<string> | Standorte, an denen der Artikel bestellbar ist |
 | aktiv | boolean | ob Artikel grundsätzlich verfügbar ist |
