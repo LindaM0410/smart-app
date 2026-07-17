@@ -123,6 +123,7 @@ h2 {
 .mitarbeiter-formular,
 .reservierung-formular,
 .walk-in-formular,
+.bestellung-formular,
 .artikel-formular {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -153,6 +154,7 @@ h2 {
 .mitarbeiter-formular > label,
 .reservierung-formular > label,
 .walk-in-formular > label,
+.bestellung-formular > label,
 .artikel-formular > label {
   display: grid;
   align-content: start;

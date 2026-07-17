@@ -20,6 +20,7 @@ model Standort {
   tischKombinationen TischKombination[]
   mitarbeiter        Mitarbeiter[]
   artikelAngebote    ArtikelStandort[]
+  bestellungen       Bestellung[]
 }
 
 model Artikel {
@@ -43,13 +44,14 @@ model ArtikelStandort {
 }
 
 model Mitarbeiter {
-  id              String   @id @default(cuid())
+  id              String       @id @default(cuid())
   name            String
-  benutzername    String   @unique
+  benutzername    String       @unique
   rolle           String
   hauptstandortId String
-  aktiv           Boolean  @default(true)
-  hauptstandort   Standort @relation(fields: [hauptstandortId], references: [id], onDelete: Restrict)
+  aktiv           Boolean      @default(true)
+  hauptstandort   Standort     @relation(fields: [hauptstandortId], references: [id], onDelete: Restrict)
+  bestellungen    Bestellung[]
 
   @@index([hauptstandortId])
 }
@@ -66,6 +68,7 @@ model Tisch {
   reservierungen ReservierungTisch[]
   belegungen     Belegung[]
   kombinationen  TischKombinationTisch[]
+  bestellungen   Bestellung[]
 
   @@unique([standortId, nummer])
   @@index([standortId])
@@ -119,10 +122,30 @@ model Reservierung {
   standort                 Standort            @relation(fields: [standortId], references: [id], onDelete: Restrict)
   tische                   ReservierungTisch[]
   belegungen               Belegung[]
+  bestellungen             Bestellung[]
 
   @@index([gastId])
   @@index([standortId])
   @@index([beginn, ende])
+}
+
+model Bestellung {
+  id                          String        @id @default(cuid())
+  standortId                  String
+  tischId                     String
+  reservierungId              String?
+  aufgenommenVonMitarbeiterId String
+  status                      String        @default("offen")
+  erstelltAm                  DateTime      @default(now())
+  standort                    Standort      @relation(fields: [standortId], references: [id], onDelete: Restrict)
+  tisch                       Tisch         @relation(fields: [tischId], references: [id], onDelete: Restrict)
+  reservierung                Reservierung? @relation(fields: [reservierungId], references: [id], onDelete: Restrict)
+  aufgenommenVonMitarbeiter   Mitarbeiter   @relation(fields: [aufgenommenVonMitarbeiterId], references: [id], onDelete: Restrict)
+
+  @@index([standortId])
+  @@index([tischId])
+  @@index([reservierungId])
+  @@index([aufgenommenVonMitarbeiterId])
 }
 
 model Belegung {

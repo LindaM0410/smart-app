@@ -49,6 +49,10 @@ export default function Startseite() {
           <strong>Speisekarte verwalten</strong>
           <span>Artikel, Preise und Standortfreigaben pflegen</span>
         </Link>
+        <Link className="funktionskarte" href="/bestellungen">
+          <strong>Bestellungen pro Tisch</strong>
+          <span>Leere Bestellungen eröffnen und ihre Zuordnung pflegen</span>
+        </Link>
       </nav>
     </main>
   );

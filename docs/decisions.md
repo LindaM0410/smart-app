@@ -386,3 +386,20 @@ Die Speisekarte nimmt nicht negative Preise im deutschen Dezimalformat mit Komma
 - Leere, negative, nicht numerische Eingaben und mehr als zwei Nachkommastellen werden abgewiesen.
 - Preisberechnung und Persistenz verwenden weiterhin keine Fließkommazahlen.
 - Vollständige Testsuite mit 80 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-18 — Leere offene Bestellung als standortgebundener Einstieg (BV-014)
+
+**Kontext:** Nach Tisch-, Reservierungs-, Mitarbeiter- und Speisekartenstammdaten soll erstmals eine Bestellung eröffnet werden können. Bestellpositionen, Preis-Snapshots und weitere Bestellstatus gehören ausdrücklich zu späteren, getrennten Features.
+
+### Entscheidung
+
+Eine Bestellung wird mit Standort, aktivem Tisch, optionaler Reservierung, aktivem aufnehmendem Mitarbeiter, Status und Erstellzeitpunkt persistiert. Tisch und Hauptstandort des Mitarbeiters müssen dem aktiven Standort der Bestellung entsprechen; eine gewählte Reservierung muss ebenfalls zu diesem Standort gehören. Die Fachoperation prüft den vollständigen Kontext innerhalb einer Transaktion. Datenbanktrigger schützen dieselben Regeln bei Anlage und Bearbeitung.
+
+BV-014 erzeugt und pflegt ausschließlich leere Bestellungen mit dem Status `offen`. Der Status ist weder in der Oberfläche wählbar noch über diesen Slice änderbar. Die Mitarbeiterreferenz dient nur der fachlichen Erstellerkennung und führt keine Anmeldung, Sitzung oder Rollenprüfung ein.
+
+### Konsequenzen
+
+- Leere Bestellungen können über eine deutsche, standortbezogene Oberfläche eröffnet und ihre Tisch-, Reservierungs- und Mitarbeiterzuordnung gepflegt werden.
+- Ungültige, inaktive oder standortfremde Referenzen werden ohne teilweise gespeicherte Änderungen zurückgewiesen.
+- Bestellpositionen, Artikel, Preis-Snapshots, Küche, Rechnungen, Zahlungen, Rabatte, Stornos sowie Seed- und Beispieldaten sind nicht enthalten.
+- Migration, vollständige Testsuite mit 85 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

@@ -55,7 +55,7 @@ Ziel: Bestellungen und Rechnungen sollen weniger Fehler verursachen.
 
 | ID | Feature | Phase | Status | Akzeptanzkern |
 | --- | --- | ---: | --- | --- |
-| BV-014 | Bestellungen pro Tisch aufnehmen | 2 | hypo | Bedienung kann an einem Tisch eine Bestellung eröffnen, pflegen und optional einer Reservierung zuordnen |
+| BV-014 | Bestellungen pro Tisch aufnehmen | 2 | done | Leere Bestellungen an einem aktiven Tisch mit aktivem, standortgleichem Mitarbeiter eröffnen und pflegen, optional einer standortgleichen Reservierung zuordnen und ausschließlich mit Status `offen` führen; Standortregeln werden server- und datenbankseitig atomar erzwungen (verifiziert am 18.07.2026) |
 | BV-015 | Bestellpositionen verwalten | 2 | hypo | Positionen mit Artikel, Menge, Preis-Snapshot, Sonderwunsch und Status erfassen |
 | BV-016 | Küchenansicht bereitstellen | 2 | hypo | Küche sieht relevante Bestellungen und kann Positionsstatus aktualisieren |
 | BV-017 | Rechnungen erzeugen | 2 | hypo | Rechnung aus Bestellung, Zahler, Zahlungsart und berechenbaren Positionen erzeugen |
