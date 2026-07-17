@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import {
   aktualisiereReservierung,
   erstelleReservierung,
+  ReservierungKonfliktfehler,
   ReservierungReferenzfehler,
 } from "@/lib/reservierung-persistenz";
 import {
@@ -45,6 +46,13 @@ function leseEingabe(formular: FormData): ReservierungEingabe {
 }
 
 function persistenzfehler(error: unknown): ReservierungFormularStatus | undefined {
+  if (error instanceof ReservierungKonfliktfehler) {
+    return {
+      fehler: { tischIds: error.message },
+      meldung: "Die Reservierung überschneidet sich mit einer bestehenden Tischbelegung.",
+    };
+  }
+
   if (error instanceof ReservierungReferenzfehler) {
     const istGast = error.feld === "gastId";
     return {

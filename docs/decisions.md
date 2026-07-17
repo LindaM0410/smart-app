@@ -175,3 +175,19 @@ Die Eigenschaft `kombinierbar`, erlaubte konkrete Tischkombinationen sowie zeitl
 - Doppelte Zuordnungen werden an der serverseitigen Systemgrenze und durch den zusammengesetzten Primärschlüssel verhindert.
 - Tischkombinationsregeln und Doppelbuchungsschutz bleiben getrennten späteren Features vorbehalten.
 - Vollständige Migrationskette, Testsuite, TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.
+
+## 2026-07-17 — Atomarer Doppelbuchungsschutz für SQLite (BV-007)
+
+**Kontext:** Aktive Reservierungen mit den Status `angefragt` oder `bestaetigt` dürfen sich für denselben Tisch zeitlich nicht überschneiden. Eine reine Vorab-Abfrage an der Anwendungsschicht schützt nicht vor konkurrierenden Schreibzugriffen. Der aktuelle SQLite-Einsatz ist auf lokale Entwicklung und einen einzelnen Anwendungsprozess begrenzt.
+
+### Entscheidung
+
+Die Reservierungspersistenz prüft Konflikte innerhalb einer Transaktion und meldet den betroffenen Tisch sowie das bestehende Zeitfenster. Zusätzlich erzwingen SQLite-Trigger die Invariante atomar beim Anlegen oder Ändern einer Tischzuordnung sowie bei Änderungen von Beginn, Ende oder Status einer Reservierung. Überschneidungen werden mit `vorhanden.beginn < neu.ende` und `vorhanden.ende > neu.beginn` geprüft, sodass die halb-offenen Intervalle `[Beginn, Ende)` direkt aufeinanderfolgende Reservierungen erlauben.
+
+Die Datenbankprüfung gilt ausschließlich für die blockierenden Status `angefragt` und `bestaetigt`. `storniert`, `noShow` und `abgeschlossen` bleiben nicht blockierend. Bei einem späteren Wechsel des Datenbanksystems muss die Triggerstrategie durch einen gleichwertigen atomaren Mechanismus des Zielsystems ersetzt werden.
+
+### Konsequenzen
+
+- Doppelbuchungen werden auch bei konkurrierenden Schreibversuchen nicht persistiert.
+- Formularfehler können Tisch und Konfliktzeitraum verständlich benennen.
+- Anlage, Bearbeitung, Statuswirkung, mehrere Tische, Intervallgrenzen und parallele Schreibversuche sind automatisiert getestet.

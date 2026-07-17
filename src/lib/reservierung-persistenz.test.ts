@@ -10,9 +10,12 @@ import { PrismaClient } from "@prisma/client";
 import {
   aktualisiereReservierung,
   erstelleReservierung,
+  ReservierungKonfliktfehler,
   ReservierungReferenzfehler,
 } from "./reservierung-persistenz.ts";
 import { normalisiereReservierung } from "./reservierungen.ts";
+
+const testdatenbankPfade = new WeakMap<PrismaClient, string>();
 
 async function erstelleTestdatenbank(t: TestContext) {
   const pfad = join(
@@ -20,6 +23,7 @@ async function erstelleTestdatenbank(t: TestContext) {
     `bella-vista-reservierungen-${process.pid}-${Date.now()}-${Math.random()}.db`,
   );
   const datenbank = new PrismaClient({ datasourceUrl: `file:${pfad}` });
+  testdatenbankPfade.set(datenbank, pfad);
 
   t.after(async () => {
     await datenbank.$disconnect();
@@ -67,6 +71,35 @@ async function erstelleTestdatenbank(t: TestContext) {
       FOREIGN KEY ("reservierungId") REFERENCES "Reservierung" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
       FOREIGN KEY ("tischId") REFERENCES "Tisch" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
     )
+  `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TRIGGER "ReservierungTisch_keine_Doppelbuchung_insert"
+    BEFORE INSERT ON "ReservierungTisch"
+    WHEN EXISTS (
+      SELECT 1 FROM "Reservierung" AS neu
+      JOIN "ReservierungTisch" AS zuordnung ON zuordnung."tischId" = NEW."tischId"
+      JOIN "Reservierung" AS vorhanden ON vorhanden."id" = zuordnung."reservierungId"
+      WHERE neu."id" = NEW."reservierungId"
+        AND neu."status" IN ('angefragt', 'bestaetigt')
+        AND vorhanden."status" IN ('angefragt', 'bestaetigt')
+        AND vorhanden."id" <> neu."id"
+        AND vorhanden."beginn" < neu."ende"
+        AND vorhanden."ende" > neu."beginn"
+    ) BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_DOPPELBUCHUNG'); END
+  `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TRIGGER "Reservierung_keine_Doppelbuchung_update"
+    BEFORE UPDATE OF "beginn", "ende", "status" ON "Reservierung"
+    WHEN NEW."status" IN ('angefragt', 'bestaetigt') AND EXISTS (
+      SELECT 1 FROM "ReservierungTisch" AS eigeneTische
+      JOIN "ReservierungTisch" AS andereTische ON andereTische."tischId" = eigeneTische."tischId"
+      JOIN "Reservierung" AS vorhanden ON vorhanden."id" = andereTische."reservierungId"
+      WHERE eigeneTische."reservierungId" = NEW."id"
+        AND vorhanden."id" <> NEW."id"
+        AND vorhanden."status" IN ('angefragt', 'bestaetigt')
+        AND vorhanden."beginn" < NEW."ende"
+        AND vorhanden."ende" > NEW."beginn"
+    ) BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_DOPPELBUCHUNG'); END
   `);
 
   await datenbank.standort.create({
@@ -217,4 +250,86 @@ test("weist unbekannte, inaktive und standortfremde Tische zurück", async (t) =
         fehler instanceof ReservierungReferenzfehler && fehler.feld === "tischIds",
     );
   }
+});
+
+test("verhindert überlappende aktive Reservierungen für denselben Tisch", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await erstelleReservierung(datenbank, eingabe);
+
+  await assert.rejects(
+    erstelleReservierung(datenbank, {
+      ...eingabe,
+      beginn: new Date("2026-07-20T18:00:00.000Z"),
+      ende: new Date("2026-07-20T20:00:00.000Z"),
+    }),
+    (fehler) =>
+      fehler instanceof ReservierungKonfliktfehler &&
+      fehler.tischNummer === "K-01" &&
+      fehler.beginn.toISOString() === "2026-07-20T17:00:00.000Z",
+  );
+
+  assert.equal(await datenbank.reservierung.count(), 1);
+});
+
+test("behandelt Zeitfenster halb-offen und nicht blockierende Status korrekt", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await erstelleReservierung(datenbank, eingabe);
+
+  await erstelleReservierung(datenbank, {
+    ...eingabe,
+    beginn: new Date("2026-07-20T19:00:00.000Z"),
+    ende: new Date("2026-07-20T21:00:00.000Z"),
+  });
+
+  for (const status of ["storniert", "noShow", "abgeschlossen"] as const) {
+    await erstelleReservierung(datenbank, {
+      ...eingabe,
+      status,
+      beginn: new Date("2026-07-20T17:30:00.000Z"),
+      ende: new Date("2026-07-20T18:30:00.000Z"),
+    });
+  }
+
+  assert.equal(await datenbank.reservierung.count(), 5);
+});
+
+test("prüft bei mehreren Tischen jeden Tisch und ignoriert sich beim Bearbeiten selbst", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const vorhanden = await erstelleReservierung(datenbank, eingabe);
+
+  await aktualisiereReservierung(datenbank, vorhanden.id, {
+    ...eingabe,
+    status: "bestaetigt",
+  });
+
+  await assert.rejects(
+    erstelleReservierung(datenbank, {
+      ...eingabe,
+      tischIds: ["tisch-2", "tisch-1"],
+    }),
+    ReservierungKonfliktfehler,
+  );
+  assert.equal(await datenbank.reservierung.count(), 1);
+});
+
+test("lässt bei zwei parallelen Doppelbuchungen genau eine erfolgreich speichern", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const pfad = testdatenbankPfade.get(datenbank);
+  assert.ok(pfad);
+  const datenbankParallel = new PrismaClient({
+    datasourceUrl: `file:${pfad}`,
+  });
+  t.after(() => datenbankParallel.$disconnect());
+
+  const ergebnisse = await Promise.allSettled([
+    erstelleReservierung(datenbank, eingabe),
+    erstelleReservierung(datenbankParallel, {
+      ...eingabe,
+      beginn: new Date("2026-07-20T17:30:00.000Z"),
+      ende: new Date("2026-07-20T19:30:00.000Z"),
+    }),
+  ]);
+
+  assert.equal(ergebnisse.filter(({ status }) => status === "fulfilled").length, 1);
+  assert.equal(await datenbank.reservierung.count(), 1);
 });
