@@ -16,6 +16,7 @@ const gueltigeReservierung: ReservierungEingabe = {
   status: "angefragt",
   notiz: "Fensterplatz",
   erstelltVonMitarbeiterId: "mitarbeiter-1",
+  tischIds: [],
 };
 
 test("setzt ohne Endzeit zwei Stunden Planungsdauer", () => {
@@ -70,4 +71,13 @@ test("weist ungültige Datumswerte zurück", () => {
 
   assert.ok(fehler.beginn);
   assert.ok(fehler.ende);
+});
+
+test("weist doppelte Tischzuordnungen zurück", () => {
+  const fehler = validiereReservierung({
+    ...gueltigeReservierung,
+    tischIds: ["tisch-1", "tisch-1"],
+  });
+
+  assert.equal(fehler.tischIds, "Jeder Tisch darf nur einmal zugeordnet werden.");
 });

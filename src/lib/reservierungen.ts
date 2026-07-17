@@ -17,6 +17,7 @@ export type ReservierungEingabe = {
   status: string;
   notiz: string;
   erstelltVonMitarbeiterId: string;
+  tischIds: string[];
 };
 
 export type NormalisierteReservierungEingabe = Omit<
@@ -36,7 +37,8 @@ export type ReservierungValidierungsfehler = Partial<
     | "ende"
     | "personenanzahl"
     | "status"
-    | "erstelltVonMitarbeiterId",
+    | "erstelltVonMitarbeiterId"
+    | "tischIds",
     string
   >
 >;
@@ -82,6 +84,9 @@ export function validiereReservierung(
   }
   if (eingabe.erstelltVonMitarbeiterId.trim().length === 0) {
     fehler.erstelltVonMitarbeiterId = "Bitte die Mitarbeiterkennung angeben.";
+  }
+  if (new Set(eingabe.tischIds).size !== eingabe.tischIds.length) {
+    fehler.tischIds = "Jeder Tisch darf nur einmal zugeordnet werden.";
   }
 
   return fehler;

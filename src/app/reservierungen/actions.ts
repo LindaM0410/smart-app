@@ -40,6 +40,7 @@ function leseEingabe(formular: FormData): ReservierungEingabe {
     erstelltVonMitarbeiterId: String(
       formular.get("erstelltVonMitarbeiterId") ?? "",
     ).trim(),
+    tischIds: formular.getAll("tischIds").map((wert) => String(wert).trim()),
   };
 }
 
@@ -50,7 +51,9 @@ function persistenzfehler(error: unknown): ReservierungFormularStatus | undefine
       fehler: {
         [error.feld]: istGast
           ? "Der gewählte Gast ist nicht aktiv oder nicht mehr vorhanden."
-          : "Der gewählte Standort ist nicht aktiv oder nicht mehr vorhanden.",
+          : error.feld === "standortId"
+            ? "Der gewählte Standort ist nicht aktiv oder nicht mehr vorhanden."
+            : "Mindestens ein gewählter Tisch ist in diesem Standort nicht aktiv oder nicht mehr vorhanden.",
       },
       meldung: "Bitte eine verfügbare Auswahl treffen.",
     };

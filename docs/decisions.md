@@ -158,3 +158,20 @@ Bis ein Mitarbeitermodell vorhanden ist, wird die verpflichtende Erstellerkennun
 - Nur vorhandene aktive Gäste und Standorte können für neue Schreibvorgänge verwendet werden.
 - Standarddauer, Zeitvalidierung, Personenzahl, Statuswerte, Gruppenkennzeichen und Persistenz sind automatisiert getestet.
 - Migration, vollständige Testsuite, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-17 — Explizite Tischzuordnung für Reservierungen (BV-006)
+
+**Kontext:** Reservierungen und Tische sind bereits standortgebunden vorhanden. BV-006 soll Reservierungen einen oder mehreren Tischen zuordnen, ohne Regeln für erlaubte Tischkombinationen oder zeitliche Reservierungskonflikte vorwegzunehmen.
+
+### Entscheidung
+
+Die n:m-Beziehung zwischen Reservierung und Tisch wird über die explizite Verbindung `ReservierungTisch` mit einem eindeutigen Paar aus Reservierungs- und Tisch-ID persistiert. Beim Schreiben werden ausschließlich vorhandene aktive Tische akzeptiert, die zum Standort der Reservierung gehören. Eine Reservierung darf ohne Tischzuordnung gespeichert werden; vorhandene Zuordnungen können vollständig ersetzt oder entfernt werden.
+
+Die Eigenschaft `kombinierbar`, erlaubte konkrete Tischkombinationen sowie zeitliche Überschneidungen werden in BV-006 weder ausgewertet noch validiert.
+
+### Konsequenzen
+
+- Reservierungen können über die deutsche Oberfläche einem oder mehreren standortgleichen Tischen zugeordnet werden.
+- Doppelte Zuordnungen werden an der serverseitigen Systemgrenze und durch den zusammengesetzten Primärschlüssel verhindert.
+- Tischkombinationsregeln und Doppelbuchungsschutz bleiben getrennten späteren Features vorbehalten.
+- Vollständige Migrationskette, Testsuite, TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.

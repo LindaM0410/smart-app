@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { RESERVIERUNGSSTATUS } from "@/lib/reservierungen";
 
@@ -18,6 +18,7 @@ const statusBezeichnungen: Record<(typeof RESERVIERUNGSSTATUS)[number], string> 
 };
 
 type Auswahl = { id: string; name: string };
+type TischAuswahl = { id: string; nummer: string; standortId: string };
 type ReservierungWerte = {
   id: string;
   gastId: string;
@@ -28,20 +29,25 @@ type ReservierungWerte = {
   status: string;
   notiz: string;
   erstelltVonMitarbeiterId: string;
+  tischIds: string[];
 };
 
 export function ReservierungFormular({
   gaeste,
   standorte,
+  tische,
   reservierung,
 }: {
   gaeste: Auswahl[];
   standorte: Auswahl[];
+  tische: TischAuswahl[];
   reservierung?: ReservierungWerte;
 }) {
   const aktion = reservierung ? reservierungBearbeiten : reservierungAnlegen;
   const [status, formularAktion, ausstehend] = useActionState(aktion, initialerStatus);
   const kennung = reservierung?.id ?? "neu";
+  const [standortId, setStandortId] = useState(reservierung?.standortId ?? "");
+  const verfuegbareTische = tische.filter((tisch) => tisch.standortId === standortId);
 
   return (
     <form action={formularAktion} className="reservierung-formular">
@@ -58,7 +64,12 @@ export function ReservierungFormular({
 
       <label>
         Standort
-        <select defaultValue={reservierung?.standortId ?? ""} name="standortId" required>
+        <select
+          defaultValue={reservierung?.standortId ?? ""}
+          name="standortId"
+          onChange={(ereignis) => setStandortId(ereignis.target.value)}
+          required
+        >
           <option value="">Bitte wählen</option>
           {standorte.map((standort) => (
             <option key={standort.id} value={standort.id}>{standort.name}</option>
@@ -66,6 +77,30 @@ export function ReservierungFormular({
         </select>
         {status.fehler.standortId ? <span className="fehler">{status.fehler.standortId}</span> : null}
       </label>
+
+      <fieldset className="formular-breit tischauswahl">
+        <legend>Tische <span className="sekundaer">(optional)</span></legend>
+        {standortId.length === 0 ? (
+          <p className="sekundaer">Bitte zuerst einen Standort wählen.</p>
+        ) : verfuegbareTische.length === 0 ? (
+          <p className="sekundaer">An diesem Standort sind keine aktiven Tische verfügbar.</p>
+        ) : (
+          <div className="auswahlgruppe">
+            {verfuegbareTische.map((tisch) => (
+              <label className="kontrollfeld" key={`${kennung}-${tisch.id}`}>
+                <input
+                  defaultChecked={reservierung?.tischIds.includes(tisch.id)}
+                  name="tischIds"
+                  type="checkbox"
+                  value={tisch.id}
+                />
+                Tisch {tisch.nummer}
+              </label>
+            ))}
+          </div>
+        )}
+        {status.fehler.tischIds ? <span className="fehler">{status.fehler.tischIds}</span> : null}
+      </fieldset>
 
       <label>
         Beginn

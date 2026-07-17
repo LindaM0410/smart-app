@@ -20,14 +20,15 @@ model Standort {
 }
 
 model Tisch {
-  id           String   @id @default(cuid())
-  standortId   String
-  nummer       String
-  kapazitaet   Int
-  bereich      String
-  kombinierbar Boolean  @default(false)
-  aktiv        Boolean  @default(true)
-  standort     Standort @relation(fields: [standortId], references: [id], onDelete: Restrict)
+  id             String              @id @default(cuid())
+  standortId     String
+  nummer         String
+  kapazitaet     Int
+  bereich        String
+  kombinierbar   Boolean             @default(false)
+  aktiv          Boolean             @default(true)
+  standort       Standort            @relation(fields: [standortId], references: [id], onDelete: Restrict)
+  reservierungen ReservierungTisch[]
 
   @@unique([standortId, nummer])
   @@index([standortId])
@@ -46,7 +47,7 @@ model Gast {
 }
 
 model Reservierung {
-  id                       String   @id @default(cuid())
+  id                       String              @id @default(cuid())
   gastId                   String
   standortId               String
   beginn                   DateTime
@@ -54,12 +55,23 @@ model Reservierung {
   personenanzahl           Int
   status                   String
   notiz                    String
-  istGruppe                Boolean  @default(false)
+  istGruppe                Boolean             @default(false)
   erstelltVonMitarbeiterId String
-  gast                     Gast     @relation(fields: [gastId], references: [id], onDelete: Restrict)
-  standort                 Standort @relation(fields: [standortId], references: [id], onDelete: Restrict)
+  gast                     Gast                @relation(fields: [gastId], references: [id], onDelete: Restrict)
+  standort                 Standort            @relation(fields: [standortId], references: [id], onDelete: Restrict)
+  tische                   ReservierungTisch[]
 
   @@index([gastId])
   @@index([standortId])
   @@index([beginn, ende])
+}
+
+model ReservierungTisch {
+  reservierungId String
+  tischId        String
+  reservierung   Reservierung @relation(fields: [reservierungId], references: [id], onDelete: Cascade)
+  tisch          Tisch        @relation(fields: [tischId], references: [id], onDelete: Restrict)
+
+  @@id([reservierungId, tischId])
+  @@index([tischId])
 }
