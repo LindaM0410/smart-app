@@ -29,6 +29,10 @@ export default function Startseite() {
           <strong>Reale Tischbelegung führen</strong>
           <span>Reservierte Tische platzieren und ausdrücklich freigeben</span>
         </Link>
+        <Link className="funktionskarte" href="/tischuebersicht">
+          <strong>Tischübersicht anzeigen</strong>
+          <span>Freie, bald reservierte und belegte Tische sehen</span>
+        </Link>
       </nav>
     </main>
   );

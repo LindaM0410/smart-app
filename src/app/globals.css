@@ -244,6 +244,54 @@ button:disabled {
   font-size: 0.9rem;
 }
 
+.uebersicht-filter {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  align-items: end;
+  gap: 1rem;
+}
+
+.uebersicht-filter label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.statuslegende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tischraster {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.tischkarte {
+  display: grid;
+  gap: 0.85rem;
+  border-left-width: 0.5rem;
+}
+
+.tischkarte.frei { border-left-color: #3f8a51; }
+.tischkarte.bald-reserviert { border-left-color: #d69b16; }
+.tischkarte.belegt { border-left-color: #b53a31; }
+
+.tischstatus {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.tischstatus.frei { color: #285f35; background: #e7f4e9; }
+.tischstatus.bald-reserviert { color: #6b4b00; background: #fff1c4; }
+.tischstatus.belegt { color: #84251f; background: #f9dfdc; }
+
 @media (max-width: 40rem) {
   main {
     padding-top: 2rem;
@@ -253,6 +301,10 @@ button:disabled {
   .tisch-formular,
   .gast-formular,
   .reservierung-formular {
+    grid-template-columns: 1fr;
+  }
+
+  .uebersicht-filter {
     grid-template-columns: 1fr;
   }
 

@@ -208,3 +208,22 @@ Belegungen werden nicht gelöscht, damit Beginn und tatsächliche Freigabe erhal
 - Gleichzeitige offene Belegungen desselben Tisches werden durch einen partiellen eindeutigen SQLite-Index verhindert.
 - Die Reservierung-Tisch-Zuordnung und der Aktivstatus des Tisches werden beim Anlegen an der serverseitigen Systemgrenze und zusätzlich durch einen SQLite-Trigger geprüft.
 - Platzierung, Doppelbelegung, explizite Freigabe, Historie und Fortbestand über Planungsende beziehungsweise Statusänderung hinaus sind automatisiert getestet.
+
+## 2026-07-17 — Punktbezogene Tischübersicht pro Standort und Tag (BV-008)
+
+**Kontext:** Die Spezifikation verlangt eine einfache Übersicht, die Tische pro Standort und Tag als frei, innerhalb der nächsten 60 Minuten reserviert oder real belegt kennzeichnet. Öffnungszeiten und eine vollständige Tageszeitleiste sind noch nicht festgelegt beziehungsweise nicht Teil dieses Slices. Damit der Zustand auch für einen gewählten Tag eindeutig berechnet werden kann, benötigt die Ansicht neben dem Datum einen konkreten Betrachtungszeitpunkt.
+
+### Entscheidung
+
+Die Tischübersicht ist eine reine serverseitige Leseansicht mit Auswahl von aktivem Standort, Datum und Uhrzeit. Sie zeigt ausschließlich aktive Tische des gewählten Standorts. Eine offene reale Belegung ergibt unabhängig vom geplanten Reservierungsende den Zustand `belegt` und hat Vorrang vor allen Reservierungsinformationen. Ohne offene Belegung gilt ein Tisch als `bald reserviert`, wenn eine blockierende Reservierung am gewählten Tag ab dem Betrachtungszeitpunkt innerhalb der nächsten 60 Minuten einschließlich der Zeitgrenze beginnt. Andernfalls ist der Tisch `frei`.
+
+Die Tagesgrenze wird als halb-offen behandelt; eine Reservierung genau um Mitternacht gehört nicht mehr zum gewählten Vortag. Datum und Uhrzeit werden in `Europe/Berlin` ausgewertet. Die Oberfläche vermittelt jeden Zustand sowohl durch deutschen Text als auch durch Grün, Gelb oder Rot, sodass Farbe nicht die einzige Information trägt.
+
+Die Ansicht nimmt keine Platzierung oder andere Schreiboperation vor. Sie führt weder Walk-ins, Rollenautorisierung, No-Show-Automatik, Folgereservierungswarnungen, Öffnungszeitenlogik noch eine vollständige Tageszeitleiste ein.
+
+### Konsequenzen
+
+- Der operative Tischzustand kann für einen eindeutigen Zeitpunkt eines gewählten Tages und Standorts abgefragt werden.
+- Nicht blockierende Reservierungsstatus, inaktive Tische und Daten anderer Standorte beeinflussen die Übersicht nicht.
+- Sommerzeit, Winterzeit, 60-Minuten-Grenzen, Zustandspriorität, Statusfilterung, Standorttrennung und Tageswechsel sind automatisiert getestet.
+- Die vollständige Testsuite, TypeScript-Prüfung und der Produktions-Build wurden erfolgreich ausgeführt.
