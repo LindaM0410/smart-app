@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test src/**/*.test.ts"
+    "test": "node --experimental-strip-types --test src/**/*.test.ts",
+    "passwort-setzen": "node --experimental-strip-types scripts/passwort-setzen.ts"
   },
   "engines": {
     "node": ">=22.0.0"

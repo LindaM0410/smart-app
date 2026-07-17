@@ -59,6 +59,25 @@ h2 {
   gap: 1rem;
 }
 
+.anmelde-formular {
+  display: grid;
+  gap: 1rem;
+}
+
+.anmelde-formular label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.angemeldet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
 .funktionskarte,
 .karte {
   border: 1px solid #dfd8d0;

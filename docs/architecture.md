@@ -125,6 +125,13 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 - Backups, Verschlüsselung, Löschung und Aufbewahrung vor Pilot dokumentieren.
 - Produktionsdaten nicht für lokale Entwicklung oder Tests kopieren.
 
+### Interne Anmeldung
+
+- Zugangsdaten sind getrennt von Mitarbeiterstammdaten gespeichert; Passwörter werden mit `scrypt`, individuellem Salt und mindestens zwölf Zeichen verarbeitet.
+- Eine Sitzung besteht aus einem zufälligen Token im `HttpOnly`-/`SameSite=Strict`-Cookie und ausschließlich dessen SHA-256-Hash in der Datenbank. Sie läuft nach zwölf Stunden ab und kann serverseitig widerrufen werden.
+- Jede Sitzungsauflösung lädt den Mitarbeiter neu und akzeptiert nur aktive Mitarbeitende. Rolle und Hauptstandort sind Identitätskontext, noch keine Autorisierungsentscheidung.
+- Passwortsetzen und -zurücksetzen erfolgt eng begrenzt lokal für vorhandene Benutzernamen und beendet bestehende Sitzungen.
+
 ## 10. Projektstruktur
 
 ```text
@@ -149,7 +156,7 @@ Die spätere Code-Struktur richtet sich innerhalb dieser technischen Verzeichnis
 ## 11. Offene Architekturentscheidungen
 
 - Hosting, Backups, Monitoring und Deployment
-- Authentifizierung, Session-Modell und Benutzerverwaltung
+- Verfahren zur späteren produktiven Kontenbereitstellung und Passwortwiederherstellung
 - Geräte, Browserunterstützung und responsives Bedienkonzept
 - Netzwerkausfall und möglicher Offline-Modus
 - Echtzeit-Aktualisierung für Küche und Service

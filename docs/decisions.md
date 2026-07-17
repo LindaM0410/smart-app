@@ -403,3 +403,23 @@ BV-014 erzeugt und pflegt ausschließlich leere Bestellungen mit dem Status `off
 - Ungültige, inaktive oder standortfremde Referenzen werden ohne teilweise gespeicherte Änderungen zurückgewiesen.
 - Bestellpositionen, Artikel, Preis-Snapshots, Küche, Rechnungen, Zahlungen, Rabatte, Stornos sowie Seed- und Beispieldaten sind nicht enthalten.
 - Migration, vollständige Testsuite mit 85 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-18 — Widerrufbare interne Mitarbeitersitzung ohne Autorisierung (BV-027)
+
+**Kontext:** BV-026 stellt Mitarbeiterstammdaten mit Benutzername, Rolle, Hauptstandort und Aktivstatus bereit, beweist aber keine Identität. Rollen- oder Standortrechte dürfen nicht auf einer vom Client behaupteten Mitarbeiterkennung aufbauen.
+
+### Entscheidung
+
+Authentifizierungsdaten werden in einer eigenen 1:1-Beziehung zum vorhandenen Mitarbeiter gespeichert. Passwörter haben mindestens zwölf Zeichen und werden mit Node.js `scrypt`, einem individuellen zufälligen Salt und einem 64-Byte-Schlüssel gehasht. Ein lokales Kommando setzt oder ersetzt das Passwort ausschließlich für einen vorhandenen Benutzernamen; es legt weder Mitarbeitende noch Beispieldaten an und widerruft beim Zurücksetzen alle Sitzungen der Person.
+
+Eine erfolgreiche Anmeldung erzeugt ein kryptografisch zufälliges Token mit zwölf Stunden Gültigkeit. Der Browser erhält es als `HttpOnly`-, `SameSite=Strict`-Cookie; die Datenbank speichert nur seinen SHA-256-Hash. Jede geschützte Anfrage löst die Sitzung serverseitig auf und lädt den Mitarbeiter neu. Unbekannte, abgelaufene oder manipulierte Sitzungen sowie Sitzungen inzwischen deaktivierter Mitarbeitender werden abgelehnt. Die Abmeldung entfernt Sitzung und Cookie.
+
+Rolle und Hauptstandort werden zusammen mit der bestätigten Mitarbeiteridentität bereitgestellt, aber in diesem Slice nicht als Berechtigung ausgewertet. Alle angemeldeten Rollen erreichen deshalb weiterhin dieselben vorhandenen Funktionen.
+
+### Konsequenzen
+
+- Die Anwendung kennt einen eindeutig angemeldeten aktiven Mitarbeiter und zeigt Name sowie Rolle an.
+- Direkte App-Aufrufe ohne gültige Sitzung werden zur deutschen Anmeldeseite geleitet.
+- Deaktivierung und Passwort-Reset machen bestehende Sitzungen ohne Client-Vertrauen unwirksam.
+- Rollenrechte, Standortberechtigungen, fachliche Freigaben, Auditierung und Seed-Daten werden nicht eingeführt.
+- Migration, 90 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

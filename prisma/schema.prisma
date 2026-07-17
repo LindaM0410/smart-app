@@ -44,16 +44,37 @@ model ArtikelStandort {
 }
 
 model Mitarbeiter {
-  id              String       @id @default(cuid())
-  name            String
-  benutzername    String       @unique
-  rolle           String
-  hauptstandortId String
-  aktiv           Boolean      @default(true)
-  hauptstandort   Standort     @relation(fields: [hauptstandortId], references: [id], onDelete: Restrict)
-  bestellungen    Bestellung[]
+  id                String                        @id @default(cuid())
+  name              String
+  benutzername      String                        @unique
+  rolle             String
+  hauptstandortId   String
+  aktiv             Boolean                       @default(true)
+  hauptstandort     Standort                      @relation(fields: [hauptstandortId], references: [id], onDelete: Restrict)
+  bestellungen      Bestellung[]
+  authentifizierung MitarbeiterAuthentifizierung?
+  sitzungen         MitarbeiterSitzung[]
 
   @@index([hauptstandortId])
+}
+
+model MitarbeiterAuthentifizierung {
+  mitarbeiterId  String      @id
+  passwortHash   String
+  aktualisiertAm DateTime    @updatedAt
+  mitarbeiter    Mitarbeiter @relation(fields: [mitarbeiterId], references: [id], onDelete: Cascade)
+}
+
+model MitarbeiterSitzung {
+  id            String      @id @default(cuid())
+  tokenHash     String      @unique
+  mitarbeiterId String
+  gueltigBis    DateTime
+  erstelltAm    DateTime    @default(now())
+  mitarbeiter   Mitarbeiter @relation(fields: [mitarbeiterId], references: [id], onDelete: Cascade)
+
+  @@index([mitarbeiterId])
+  @@index([gueltigBis])
 }
 
 model Tisch {

@@ -1,12 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function Startseite() {
+import { aktuellerMitarbeiter } from "@/lib/aktuelle-sitzung";
+import { abmeldenAction } from "./abmeldung/actions";
+
+export default async function Startseite() {
+  const mitarbeiter = await aktuellerMitarbeiter();
+  if (!mitarbeiter) redirect("/anmeldung");
   return (
     <main>
       <header className="seitenkopf">
         <p className="kennung">Interne Restaurant-App</p>
         <h1>Bella Vista</h1>
         <p>Verwaltung für die Standorte Kreuzberg und Spandau.</p>
+        <div className="angemeldet"><span>Angemeldet als <strong>{mitarbeiter.name}</strong> · {mitarbeiter.rolle}</span><form action={abmeldenAction}><button type="submit">Abmelden</button></form></div>
       </header>
       <nav aria-label="Funktionen" className="funktionsliste">
         <Link className="funktionskarte" href="/standorte">
