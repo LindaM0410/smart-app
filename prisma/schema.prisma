@@ -19,6 +19,27 @@ model Standort {
   reservierungen     Reservierung[]
   tischKombinationen TischKombination[]
   mitarbeiter        Mitarbeiter[]
+  artikelAngebote    ArtikelStandort[]
+}
+
+model Artikel {
+  id               String            @id @default(cuid())
+  name             String
+  kategorie        String
+  preisCent        Int
+  benoetigtGrill   Boolean           @default(false)
+  aktiv            Boolean           @default(true)
+  standortAngebote ArtikelStandort[]
+}
+
+model ArtikelStandort {
+  artikelId  String
+  standortId String
+  artikel    Artikel  @relation(fields: [artikelId], references: [id], onDelete: Restrict)
+  standort   Standort @relation(fields: [standortId], references: [id], onDelete: Restrict)
+
+  @@id([artikelId, standortId])
+  @@index([standortId])
 }
 
 model Mitarbeiter {

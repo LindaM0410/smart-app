@@ -336,3 +336,38 @@ Der Benutzername ist in BV-026 ausschließlich ein Stammdatum. Es werden keine P
 - Eindeutigkeit des Benutzernamens, Rollenmenge und Standortrelation sind datenbankseitig abgesichert; der aktive Hauptstandort wird zusätzlich an der serverseitigen Schreibgrenze geprüft.
 - Anmeldung und Autorisierung bleiben vollständig den separaten späteren Features vorbehalten.
 - Migration, vollständige Testsuite mit 69 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-17 — Standortabhängiges Artikelangebot mit Grillinvariante (BV-021)
+
+**Kontext:** Artikel sollen nur an ausdrücklich freigegebenen Standorten angeboten werden. Grillartikel dürfen insbesondere in Spandau nicht angeboten werden. Eine allgemeine Speisekartenverwaltung, Bestellungen und Rollenprüfungen sind nicht Teil dieses Slices.
+
+### Entscheidung
+
+Ein Artikel wird minimal mit Name, ganzzahligem Preis in Cent, Grillbedarf und Aktivstatus persistiert. Die ausdrückliche Standortfreigabe wird als eindeutige n:m-Zuordnung zwischen Artikel und Standort gespeichert. Eine Zuordnung ist nur zwischen einem aktiven Artikel und einem aktiven Standort zulässig. Benötigt der Artikel einen Grill, muss der Standort `hatGrill = true` besitzen; die Regel wird nicht an einen Standortnamen gekoppelt.
+
+Die Fachoperation prüft Referenzen, Aktivstatus und Grillfähigkeit innerhalb einer Transaktion. SQLite-Trigger erzwingen dieselben Regeln zusätzlich bei direkten Zuordnungen und verhindern, dass nachträgliche Änderungen an Artikel oder Standort ein bestehendes Angebot ungültig machen. Die Bedienoberfläche ist ausschließlich eine standortbezogene Leseansicht; Artikelpflege und Angebotsänderungen werden nicht über die UI bereitgestellt.
+
+### Konsequenzen
+
+- Das gültige aktive Artikelangebot kann getrennt pro aktivem Standort gelesen werden.
+- Grillartikel können in Spandau und an jedem anderen Standort ohne Grill weder über die Fachoperation noch direkt in der Datenbank freigegeben werden.
+- Preise werden ohne Fließkommazahlen als Centbeträge gespeichert.
+- Eine widersprechende Deaktivierung oder Änderung von Grillbedarf beziehungsweise Grillfähigkeit setzt voraus, dass betroffene Standortfreigaben zuvor entfernt werden.
+- Migration, vollständige Testsuite mit 75 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-17 — Speisekartenverwaltung auf dem bestehenden Artikelangebot (BV-020)
+
+**Kontext:** BV-021 hat Artikel und ihre standortabhängige Freigabe minimal persistiert, die allgemeine Pflege aber ausdrücklich ausgespart. BV-020 ergänzt diese Bedien- und Schreibgrenze, ohne Bestellungen, Rollen oder weitere Menüstrukturen vorwegzunehmen.
+
+### Entscheidung
+
+Artikel werden um eine verpflichtende freie Kategorie ergänzt. Name und Kategorie dürfen nicht leer sein; der Preis wird weiterhin als nicht negativer sicherer Ganzzahl-Centbetrag verarbeitet. Über eine deutsche Verwaltungsoberfläche können Artikel angelegt, bearbeitet und durch Setzen des Aktivstatus deaktiviert werden. Ein Löschen von Artikeln wird nicht angeboten.
+
+Standortfreigaben werden gemeinsam mit den Artikeldaten in einer Transaktion gepflegt. Es können ausschließlich aktive Standorte ausgewählt werden; Grillartikel dürfen nur Grillstandorten zugeordnet werden. Beim Deaktivieren werden vorhandene Standortfreigaben vor der Statusänderung atomar entfernt, sodass die BV-021-Invariante erhalten bleibt. Rollenprüfung und Anmeldung bleiben den dafür vorgesehenen separaten Features vorbehalten.
+
+### Konsequenzen
+
+- Die Speisekarte kann einschließlich Kategorie, Centpreis, Grillbedarf, Aktivstatus und gültigen Standortfreigaben vollständig gepflegt werden.
+- Ungültige Standort- oder Grillzuordnungen hinterlassen keine teilweise gespeicherten Änderungen.
+- Es werden keine Kategorienentität, Bestellungen, Bestellpositionen, Rechnungen oder Beispiel- und Seed-Daten eingeführt.
+- Migration, vollständige Testsuite mit 78 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

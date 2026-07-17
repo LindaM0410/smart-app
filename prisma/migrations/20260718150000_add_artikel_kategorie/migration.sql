@@ -1,0 +1,1 @@
+ALTER TABLE "Artikel" ADD COLUMN "kategorie" TEXT NOT NULL DEFAULT '';

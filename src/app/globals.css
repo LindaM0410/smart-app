@@ -122,7 +122,8 @@ h2 {
 .gast-formular,
 .mitarbeiter-formular,
 .reservierung-formular,
-.walk-in-formular {
+.walk-in-formular,
+.artikel-formular {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -151,7 +152,8 @@ h2 {
 .gast-formular > label,
 .mitarbeiter-formular > label,
 .reservierung-formular > label,
-.walk-in-formular > label {
+.walk-in-formular > label,
+.artikel-formular > label {
   display: grid;
   align-content: start;
   gap: 0.35rem;

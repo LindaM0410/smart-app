@@ -72,8 +72,8 @@ Ziel: Der Betrieb soll über Reservierung und Bestellung hinaus strukturierter w
 
 | ID | Feature | Phase | Status | Akzeptanzkern |
 | --- | --- | ---: | --- | --- |
-| BV-020 | Speisekarte verwalten | 3 | hypo | Inhaber/Manager können Artikel mit Name, Kategorie, Preis, Grillbedarf und Aktivstatus anlegen, ändern und deaktivieren |
-| BV-021 | Standortabhängiges Artikelangebot steuern | 3 | hypo | Artikel sind nur an freigegebenen Standorten bestellbar; Grillartikel sind in Spandau nicht bestellbar |
+| BV-020 | Speisekarte verwalten | 3 | done | Artikel mit Name, Kategorie, ganzzahligem Centpreis, Grillbedarf, Aktivstatus und Standortfreigaben anlegen, bearbeiten und deaktivieren; BV-021-Regeln werden server- und datenbankseitig bewahrt (verifiziert am 17.07.2026) |
+| BV-021 | Standortabhängiges Artikelangebot steuern | 3 | done | Aktive Artikel werden mit ganzzahligen Centpreisen ausdrücklich aktiven Standorten zugeordnet und pro Standort gelesen; Grillartikel können server- und datenbankseitig nur Standorten mit Grill zugeordnet werden, bestehende Angebote bleiben bei Änderungen gültig (verifiziert am 17.07.2026) |
 | BV-022 | Firmenkundenkontakte verwalten | 3 | hypo | Firma, Ansprechperson und Kontaktdaten fuer Catering wiederfinden und pflegen |
 | BV-023 | Catering-Aufträge verwalten | 3 | hypo | Auftrag mit Firma, Kontakt, Lieferadresse, Datum, Uhrzeit, Personenzahl, Menü, Preis und Status speichern |
 | BV-024 | Catering-Statusfolge erzwingen | 3 | hypo | Catering-Aufträge durchlaufen `angefragt` → `bestaetigt` → `geliefert` → `bezahlt` |

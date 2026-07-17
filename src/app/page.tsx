@@ -41,6 +41,14 @@ export default function Startseite() {
           <strong>Walk-in platzieren</strong>
           <span>Spontane Gäste in einem freien Zeitfenster platzieren</span>
         </Link>
+        <Link className="funktionskarte" href="/artikelangebot">
+          <strong>Artikelangebot anzeigen</strong>
+          <span>Gültige Artikel pro Standort einsehen</span>
+        </Link>
+        <Link className="funktionskarte" href="/speisekarte">
+          <strong>Speisekarte verwalten</strong>
+          <span>Artikel, Preise und Standortfreigaben pflegen</span>
+        </Link>
       </nav>
     </main>
   );
