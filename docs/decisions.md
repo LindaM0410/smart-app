@@ -423,3 +423,19 @@ Rolle und Hauptstandort werden zusammen mit der bestätigten Mitarbeiteridentit�
 - Deaktivierung und Passwort-Reset machen bestehende Sitzungen ohne Client-Vertrauen unwirksam.
 - Rollenrechte, Standortberechtigungen, fachliche Freigaben, Auditierung und Seed-Daten werden nicht eingeführt.
 - Migration, 90 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-18 — Kontrollierter lokaler Demo-Zugangs-Bootstrap (Ergänzung zu BV-027)
+
+**Kontext:** Das einzelne Setzen von Passwörtern per CLI ist für die wiederholte manuelle Demonstration aller vier Rollen unnötig aufwendig. Rollenrechte aus BV-013 bleiben weiterhin außerhalb des Scopes.
+
+### Entscheidung
+
+Ein ausdrücklich manuell gestartetes Entwicklungskommando richtet die vier fest dokumentierten Demo-Mitarbeitenden für Inhaber, Manager, Bedienung und Küche ein. Es aktualisiert vorhandene Datensätze anhand des eindeutigen Benutzernamens, aktiviert sie, bindet sie an Kreuzberg und setzt das gemeinsame Demo-Passwort über die bestehende `scrypt`-Hashing-Logik. Falls Kreuzberg fehlt, wird nur der vom Schema verlangte minimale aktive Standort angelegt; ein vorhandener inaktiver Standort wird reaktiviert. Das Kommando verweigert die Ausführung bei `NODE_ENV=production`.
+
+### Konsequenzen
+
+- Wiederholte Ausführung erzeugt weder doppelte Mitarbeitende noch doppelte Standorte.
+- Passwortwerte stehen nur in der lokalen Bootstrap-Definition und Dokumentation, niemals als Klartext in der Datenbank; bestehende Sitzungen der vier Konten werden widerrufen.
+- Reservierungen, Tische, Gäste, Bestellungen, Artikel, Rechnungen und Rollenautorisierung werden nicht ergänzt.
+- Dies ist ausschließlich eine lokale Testhilfe und kein Verfahren zur produktiven Kontenbereitstellung.
+- 92 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

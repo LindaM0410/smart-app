@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "test": "node --experimental-strip-types --test src/**/*.test.ts",
-    "passwort-setzen": "node --experimental-strip-types scripts/passwort-setzen.ts"
+    "passwort-setzen": "node --experimental-strip-types scripts/passwort-setzen.ts",
+    "demo-zugaenge": "node --experimental-strip-types scripts/demo-zugaenge.ts"
   },
   "engines": {
     "node": ">=22.0.0"

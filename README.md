@@ -34,4 +34,14 @@ unset BELLA_VISTA_NEUES_PASSWORT
 
 Das Passwort wird nicht ausgegeben und muss mindestens zwölf Zeichen lang sein. Beim Zurücksetzen werden bestehende Sitzungen des Mitarbeiters beendet.
 
+### Lokale Demo-Zugänge
+
+Für manuelle Tests von BV-027 können ausschließlich in der lokalen Entwicklung vier aktive Demo-Zugänge samt minimal nötigem Standort Kreuzberg eingerichtet werden:
+
+```bash
+npm run demo-zugaenge
+```
+
+Das Kommando ist idempotent und aktualisiert vorhandene Mitarbeitende mit denselben Benutzernamen. Alle vier Zugänge verwenden lokal das Passwort `BellaVista2026!`: `chef.inhaber` (Inhaber), `lorenzo.manager` (Manager), `bedienung.demo` (Bedienung) und `kueche.demo` (Küche). Die Passwörter werden mit der bestehenden `scrypt`-Logik gehasht gespeichert. Der Bootstrap legt keine Reservierungen, Tische, Gäste, Bestellungen, Artikel oder Rechnungen an, ist nicht für Produktion bestimmt und stellt keine produktive Kontenbereitstellung oder Sicherheitslösung dar.
+
 `docs/spec.md` übernimmt in diesem Solo-Projekt die Rolle des PRD. Meeting-, Mission-, INBOX- und Results-Artefakte werden nicht geführt.
