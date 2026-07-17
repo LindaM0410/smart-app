@@ -21,6 +21,6 @@ cp .env.example .env
 npm run dev
 ```
 
-Die Datenbankverbindung wird in `.env` über `DATABASE_URL` konfiguriert. Das technische Grundgerüst verwendet Prisma mit SQLite; Details stehen in [`docs/architecture.md`](docs/architecture.md).
+Die Datenbankverbindung wird in `.env` über `DATABASE_URL` konfiguriert. `npm run dev` spielt vor dem Serverstart ausstehende eingecheckte Prisma-Migrationen ein. Das technische Grundgerüst verwendet Prisma mit SQLite; Details stehen in [`docs/architecture.md`](docs/architecture.md).
 
 `docs/spec.md` übernimmt in diesem Solo-Projekt die Rolle des PRD. Meeting-, Mission-, INBOX- und Results-Artefakte werden nicht geführt.
