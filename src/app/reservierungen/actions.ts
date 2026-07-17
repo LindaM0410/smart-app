@@ -137,28 +137,33 @@ export async function reservierungBearbeiten(
   return { fehler: {}, meldung: "Änderungen wurden gespeichert.", erfolgreich: true };
 }
 
-function noShowZiel(meldung: string, erfolgreich = false) {
-  return `/reservierungen?${erfolgreich ? "erfolg" : "fehler"}=${encodeURIComponent(meldung)}`;
+function noShowZiel(meldung: string, standortId: string, erfolgreich = false) {
+  const parameter = new URLSearchParams({
+    [erfolgreich ? "erfolg" : "fehler"]: meldung,
+    standortId,
+  });
+  return `/reservierungen?${parameter}`;
 }
 
 export async function reservierungAlsNoShowMarkieren(formular: FormData) {
   const id = String(formular.get("id") ?? "").trim();
+  const standortId = String(formular.get("standortId") ?? "").trim();
   let weiterleitung: string;
 
   if (!id) {
-    weiterleitung = noShowZiel("Die Reservierung konnte nicht gefunden werden.");
+    weiterleitung = noShowZiel("Die Reservierung konnte nicht gefunden werden.", standortId);
   } else {
     try {
       await markiereReservierungAlsNoShow(prisma, id);
       revalidatePath("/reservierungen");
-      weiterleitung = noShowZiel("Die Reservierung wurde als No-Show markiert.", true);
+      weiterleitung = noShowZiel("Die Reservierung wurde als No-Show markiert.", standortId, true);
     } catch (fehler) {
       if (
         fehler instanceof NoShowAusgangsstatusFehler ||
         fehler instanceof NoShowFristFehler ||
         fehler instanceof NoShowReservierungNichtGefundenFehler
       ) {
-        weiterleitung = noShowZiel(fehler.message);
+        weiterleitung = noShowZiel(fehler.message, standortId);
       } else {
         throw fehler;
       }

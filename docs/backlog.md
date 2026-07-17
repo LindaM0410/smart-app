@@ -39,7 +39,7 @@ Ziel: Der Reservierungsbetrieb soll ohne Zettelchaos funktionieren.
 | BV-026 | Mitarbeiter verwalten | 1 | hypo | Mitarbeiter mit Name, Benutzername, Rolle, Hauptstandort und Aktivstatus pflegen |
 | BV-027 | Interne Anmeldung bereitstellen | 1 | hypo | nur aktive Mitarbeitende können die App mit zugeordneter Rolle nutzen |
 | BV-028 | Reale Tischbelegung führen | 1 | done | Zugeordnete aktive Tische für Reservierungen ausdrücklich platzieren und freigeben; pro Tisch höchstens eine offene, historisierte Belegung, die unabhängig von Planungsende und Reservierungsstatus ausschließlich durch Freigabe endet (verifiziert am 17.07.2026) |
-| BV-029 | Standortfilter für operative Übersichten | 1 | hypo | operative Ansichten können pro Standort gefiltert werden und zeigen keine vermischten Standortdaten |
+| BV-029 | Standortfilter für operative Übersichten | 1 | done | Reservierungen, reale Belegungen und Walk-in-Erfassung auf einen gewählten aktiven Standort begrenzen; angezeigte und auswählbare operative Daten anderer Standorte serverseitig ausschließen und die Auswahl nach Aktionen erhalten (verifiziert am 17.07.2026) |
 | BV-030 | Reservierungsstatus verwalten | 1 | hypo | Statusfolge und Blockierwirkung von `angefragt`, `bestaetigt`, `storniert`, `noShow`, `abgeschlossen` korrekt anwenden |
 | BV-031 | Standortbindung prüfen | 1 | hypo | Reservierungen, Tische und Mitarbeitendenkontext müssen bei schreibenden Operationen konsistent zum Standort passen |
 

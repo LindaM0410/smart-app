@@ -300,3 +300,22 @@ Es werden keine Kombinationen als Stammdaten vorgegeben. Die Konfiguration wird 
 - Standortfremde, inaktive, nicht kombinierbare und doppelte Tischmengen werden abgewiesen.
 - Bestehende Kombinationen müssen vor einer widersprechenden Änderung ihrer Mitgliedstische zuerst entfernt werden.
 - Migration, vollständige Testsuite mit 58 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-17 — Standortreine operative Übersichten (BV-029)
+
+**Kontext:** Die Tischübersicht war bereits standortbezogen, während Reservierungsliste, reale Belegungen und Walk-in-Erfassung Daten beider Standorte gemeinsam luden. Im laufenden Betrieb sollen Mitarbeitende einen Standort betrachten, ohne operative Daten des anderen Standorts in derselben Ansicht zu sehen oder auszuwählen.
+
+### Entscheidung
+
+Reservierungen, reale Belegungen und Walk-in-Erfassung erhalten einen serverseitig ausgewerteten Standortfilter. Ohne Parameter wird der erste aktive Standort gewählt; eine übergebene ID wird nur akzeptiert, wenn sie zu einem aktiven Standort aus der verfügbaren Auswahl gehört. Reservierungen, Tische, offene Belegungen und platzierbare Tischzuordnungen werden bereits in der Datenbankabfrage auf diesen Standort begrenzt.
+
+Der gewählte Standort bleibt nach operativen Aktionen in der Ziel-URL erhalten. Die bestehende Tischübersicht wird nicht verändert, weil sie Standortauswahl und Standorttrennung bereits erfüllt.
+
+Es werden keine Rollen, Reservierungsstatusfolgen, Bestellungen, Rabatte oder Rechnungen eingeführt oder verändert.
+
+### Konsequenzen
+
+- Die betroffenen operativen Ansichten zeigen und verwenden jeweils Daten genau eines aktiven Standorts.
+- Standortfremde Reservierungen, Tische, Belegungen und Platzierungsoptionen werden serverseitig ausgeschlossen.
+- Ungültige oder inaktive Standortparameter führen nicht zu einer vermischten Ansicht.
+- Standortauswahl und Standorttrennung sind automatisiert getestet; 61 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

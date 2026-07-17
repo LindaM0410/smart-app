@@ -1,35 +1,25 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import { ladeBelegungsdatenFuerStandort, waehleAktivenStandort } from "@/lib/standortfilter";
 
 import { reservierungPlatzieren, tischFreigeben } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 type Eigenschaften = {
-  searchParams: Promise<{ erfolg?: string; fehler?: string }>;
+  searchParams: Promise<{ erfolg?: string; fehler?: string; standortId?: string }>;
 };
 
 export default async function BelegungenSeite({ searchParams }: Eigenschaften) {
-  const [parameter, offeneBelegungen, zuordnungen] = await Promise.all([
+  const [parameter, standorte] = await Promise.all([
     searchParams,
-    prisma.belegung.findMany({
-      where: { ende: null },
-      include: {
-        tisch: { include: { standort: { select: { name: true } } } },
-        reservierung: { include: { gast: { select: { name: true } } } },
-      },
-      orderBy: { beginn: "asc" },
-    }),
-    prisma.reservierungTisch.findMany({
-      where: { tisch: { aktiv: true, belegungen: { none: { ende: null } } } },
-      include: {
-        tisch: { include: { standort: { select: { name: true } } } },
-        reservierung: { include: { gast: { select: { name: true } } } },
-      },
-      orderBy: [{ reservierung: { beginn: "asc" } }, { tisch: { nummer: "asc" } }],
-    }),
+    prisma.standort.findMany({ where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
+  const standort = waehleAktivenStandort(standorte, parameter.standortId);
+  const { offeneBelegungen, zuordnungen } = standort
+    ? await ladeBelegungsdatenFuerStandort(prisma, standort.id)
+    : { offeneBelegungen: [], zuordnungen: [] };
 
   return (
     <main>
@@ -43,6 +33,17 @@ export default async function BelegungenSeite({ searchParams }: Eigenschaften) {
       {parameter.erfolg ? <p className="erfolg karte">{parameter.erfolg}</p> : null}
       {parameter.fehler ? <p className="fehler karte">{parameter.fehler}</p> : null}
 
+      <form className="karte uebersicht-filter" method="get">
+        <label>Standort
+          <select defaultValue={standort?.id ?? ""} name="standortId" required>
+            <option disabled value="">Bitte wählen</option>
+            {standorte.map((eintrag) => <option key={eintrag.id} value={eintrag.id}>{eintrag.name}</option>)}
+          </select>
+        </label>
+        <button type="submit">Belegungen anzeigen</button>
+      </form>
+      {!standort && standorte.length > 0 ? <p className="fehler karte">Bitte einen gültigen aktiven Standort wählen.</p> : null}
+
       <section className="standortliste">
         <h2>Aktuell laufende Belegungen</h2>
         {offeneBelegungen.length === 0 ? <p className="leerzustand">Kein Tisch ist derzeit real belegt.</p> :
@@ -55,6 +56,7 @@ export default async function BelegungenSeite({ searchParams }: Eigenschaften) {
                 </div>
                 <form action={tischFreigeben}>
                   <input name="belegungId" type="hidden" value={belegung.id} />
+                  <input name="standortId" type="hidden" value={standort!.id} />
                   <button type="submit">Tisch freigeben</button>
                 </form>
               </div>
@@ -75,6 +77,7 @@ export default async function BelegungenSeite({ searchParams }: Eigenschaften) {
                 <form action={reservierungPlatzieren}>
                   <input name="reservierungId" type="hidden" value={reservierung.id} />
                   <input name="tischId" type="hidden" value={tisch.id} />
+                  <input name="standortId" type="hidden" value={standort!.id} />
                   <button type="submit">Jetzt platzieren</button>
                 </form>
               </div>

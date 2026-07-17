@@ -12,8 +12,12 @@ import {
 } from "@/lib/walk-in-persistenz";
 import { validiereWalkIn } from "@/lib/walk-ins";
 
-function ziel(meldung: string, erfolgreich = false) {
-  return `/walk-ins?${erfolgreich ? "erfolg" : "fehler"}=${encodeURIComponent(meldung)}`;
+function ziel(meldung: string, standortId: string, erfolgreich = false) {
+  const parameter = new URLSearchParams({
+    [erfolgreich ? "erfolg" : "fehler"]: meldung,
+    standortId,
+  });
+  return `/walk-ins?${parameter}`;
 }
 
 export async function walkInPlatzieren(formular: FormData) {
@@ -28,21 +32,21 @@ export async function walkInPlatzieren(formular: FormData) {
   let weiterleitung: string;
 
   if (fehler.length > 0) {
-    weiterleitung = ziel(fehler[0]);
+    weiterleitung = ziel(fehler[0], eingabe.standortId);
   } else {
     try {
       await platziereWalkIn(prisma, eingabe);
       revalidatePath("/walk-ins");
       revalidatePath("/belegungen");
       revalidatePath("/tischuebersicht");
-      weiterleitung = ziel("Der Walk-in wurde platziert.", true);
+      weiterleitung = ziel("Der Walk-in wurde platziert.", eingabe.standortId, true);
     } catch (error) {
       if (
         error instanceof WalkInReferenzfehler ||
         error instanceof WalkInKapazitaetsfehler ||
         error instanceof WalkInZeitfensterfehler
       ) {
-        weiterleitung = ziel(error.message);
+        weiterleitung = ziel(error.message, eingabe.standortId);
       } else {
         throw error;
       }
