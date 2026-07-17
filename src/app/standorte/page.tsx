@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 
 import { StandortFormular } from "./standort-formular";
@@ -7,6 +8,7 @@ import { StandortFormular } from "./standort-formular";
 export const dynamic = "force-dynamic";
 
 export default async function StandorteSeite() {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const standorte = await prisma.standort.findMany({ orderBy: { name: "asc" } });
 
   return (

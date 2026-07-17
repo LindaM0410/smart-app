@@ -3,6 +3,7 @@
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import {
   aktualisiereMitarbeiter,
   erstelleMitarbeiter,
@@ -63,6 +64,7 @@ export async function mitarbeiterAnlegen(
   _status: MitarbeiterFormularStatus,
   formular: FormData,
 ): Promise<MitarbeiterFormularStatus> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const eingabe = leseEingabe(formular);
   const fehler = validiereMitarbeiter(eingabe);
 
@@ -86,6 +88,7 @@ export async function mitarbeiterBearbeiten(
   _status: MitarbeiterFormularStatus,
   formular: FormData,
 ): Promise<MitarbeiterFormularStatus> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const id = String(formular.get("id") ?? "");
   const eingabe = leseEingabe(formular);
   const fehler = validiereMitarbeiter(eingabe);

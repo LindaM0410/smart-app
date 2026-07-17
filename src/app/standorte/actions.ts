@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 import { aktualisiereStandort, erstelleStandort } from "@/lib/standort-persistenz";
 import {
@@ -32,6 +33,7 @@ export async function standortAnlegen(
   _status: StandortFormularStatus,
   formular: FormData,
 ): Promise<StandortFormularStatus> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const eingabe = leseEingabe(formular);
   const fehler = validiereStandort(eingabe);
 
@@ -49,6 +51,7 @@ export async function standortBearbeiten(
   _status: StandortFormularStatus,
   formular: FormData,
 ): Promise<StandortFormularStatus> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const id = String(formular.get("id") ?? "");
   const eingabe = leseEingabe(formular);
   const fehler = validiereStandort(eingabe);

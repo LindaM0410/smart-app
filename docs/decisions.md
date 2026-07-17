@@ -439,3 +439,23 @@ Ein ausdrücklich manuell gestartetes Entwicklungskommando richtet die vier fest
 - Reservierungen, Tische, Gäste, Bestellungen, Artikel, Rechnungen und Rollenautorisierung werden nicht ergänzt.
 - Dies ist ausschließlich eine lokale Testhilfe und kein Verfahren zur produktiven Kontenbereitstellung.
 - 92 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-18 — Rollenbasierte Zugriffskontrolle als erster Fähigkeitenslice (BV-013)
+
+**Kontext:** BV-027 stellt eine serverseitig bestätigte Mitarbeiteridentität mit Rolle bereit, wertet die Rolle aber noch nicht aus. Alle vier Rollen konnten deshalb dieselben Seiten und Serveroperationen erreichen. Eine Küchenansicht, Standortberechtigungen und fachliche Freigaben sind noch nicht Bestandteil dieses Slices.
+
+### Entscheidung
+
+Die erste Autorisierung unterscheidet zentral die expliziten Fähigkeiten `stammdatenPflegen` und `operativeAblaeufeNutzen`. Inhaber und Manager besitzen beide Fähigkeiten. Bedienung besitzt ausschließlich die operative Fähigkeit. Küche besitzt zunächst keine der beiden Fähigkeiten und erreicht nur die eingeschränkte Startseite mit Sitzungsinformation und Abmeldung.
+
+Standorte, Tische, Tischkombinationen, Mitarbeitende, Speisekarte, Artikelangebot und Standortfreigaben benötigen die Stammdatenfähigkeit. Gäste, Reservierungen, Tischzuweisung, Tischübersicht, Walk-ins, reale Belegungen und bestehende Bestellungen benötigen die operative Fähigkeit. Bekannte Seitenpfade werden bereits vor dem Rendern geprüft; die Seiten und alle zugehörigen Server Actions prüfen zusätzlich selbst. Unbekannte Rollen erhalten standardmäßig keine Fähigkeit.
+
+Rolle und Mitarbeiteridentität werden ausschließlich aus der bei jeder Anfrage serverseitig validierten Sitzung übernommen. Reservierungen und Bestellungen verwenden für ihre gespeicherte Mitarbeiterkennung den Sitzungsmitarbeiter; gleichnamige Formularwerte werden nicht ausgewertet.
+
+### Konsequenzen
+
+- Direkte URLs und direkte Server-Action-Aufrufe umgehen die Rollenprüfung nicht.
+- Die Navigation zeigt nur Funktionen, für die die angemeldete Rolle eine Fähigkeit besitzt.
+- Manager dürfen in diesem Slice ausdrücklich auch Mitarbeiterstammdaten pflegen.
+- Standortberechtigungen, Hauptstandort-Beschränkungen, Gruppenfreigaben, Rabatte, Stornos, Auditierung, Küche, Bestellpositionen, Rechnungen und Catering bleiben außerhalb von BV-013.
+- Rollenmatrix, Pfadschutz, Serveroperationsprüfung und ignorierte Clientbehauptungen sind automatisiert getestet; 98 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

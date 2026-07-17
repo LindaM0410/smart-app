@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import {
   ArtikelangebotReferenzfehler,
   GrillangebotNichtErlaubtFehler,
@@ -69,10 +70,12 @@ async function speichern(id: string | undefined, formular: FormData): Promise<Ar
 }
 
 export async function artikelAnlegen(_status: ArtikelFormularStatus, formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   return speichern(undefined, formular);
 }
 
 export async function artikelBearbeiten(_status: ArtikelFormularStatus, formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const id = String(formular.get("id") ?? "");
   if (!id) return { fehler: {}, meldung: "Der Artikel konnte nicht gefunden werden." };
   return speichern(id, formular);

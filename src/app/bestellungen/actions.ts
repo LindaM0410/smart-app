@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { FAEHIGKEITEN, sitzungsAkteurId, verlangeFaehigkeit } from "@/lib/autorisierung";
 import {
   aktualisiereBestellung,
   BestellungReferenzfehler,
@@ -15,12 +16,12 @@ export type BestellungFormularStatus = {
   erfolgreich?: boolean;
 };
 
-function leseEingabe(formular: FormData): BestellungEingabe {
+function leseEingabe(formular: FormData, mitarbeiterId: string): BestellungEingabe {
   return {
     standortId: String(formular.get("standortId") ?? "").trim(),
     tischId: String(formular.get("tischId") ?? "").trim(),
     reservierungId: String(formular.get("reservierungId") ?? "").trim() || null,
-    aufgenommenVonMitarbeiterId: String(formular.get("aufgenommenVonMitarbeiterId") ?? "").trim(),
+    aufgenommenVonMitarbeiterId: mitarbeiterId,
   };
 }
 
@@ -33,8 +34,9 @@ async function fuehreAus(
   aktion: (eingabe: BestellungEingabe) => Promise<unknown>,
   erfolgsmeldung: string,
 ): Promise<BestellungFormularStatus> {
-  const eingabe = leseEingabe(formular);
-  if (!istVollstaendig(eingabe)) return { meldung: "Bitte Tisch und aufnehmenden Mitarbeiter wählen." };
+  const mitarbeiter = await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
+  const eingabe = leseEingabe(formular, sitzungsAkteurId(mitarbeiter, formular.get("aufgenommenVonMitarbeiterId")));
+  if (!istVollstaendig(eingabe)) return { meldung: "Bitte einen Tisch wählen." };
 
   try {
     await aktion(eingabe);

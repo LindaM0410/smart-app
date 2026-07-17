@@ -1,6 +1,6 @@
 # Architektur — Bella Vista Restaurant-App
 
-_Stand: 15. Juli 2026 · Status: fachliche Architektur und technisches Grundgerüst definiert_
+_Stand: 18. Juli 2026 · Status: fachliche Architektur und technisches Grundgerüst definiert_
 
 ## 1. Architekturziele
 
@@ -103,9 +103,9 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 | Storno oder Rabatt freigeben | ja | ja | nein | nein |
 | Menü und Standortangebot pflegen | ja | ja | nein | nein |
 | Catering/Firmenkunden pflegen | ja | ja | nein | nein |
-| Mitarbeiter und Rollen verwalten | ja | offen | nein | nein |
+| Mitarbeiter und Rollen verwalten | ja | ja | nein | nein |
 
-`offen` ist vor Implementierung zu entscheiden. Autorisierung wird an jeder schreibenden Systemgrenze geprüft; ausgeblendete UI-Elemente sind kein Schutz.
+BV-013 bündelt diese erste Rollenmatrix in die expliziten Fähigkeiten `stammdatenPflegen` und `operativeAblaeufeNutzen`. Inhaber und Manager besitzen beide Fähigkeiten, Bedienung ausschließlich die operative Fähigkeit und Küche bis zu einer späteren Küchenansicht keine der beiden. Autorisierung wird aus der serverseitig validierten Sitzung an Seiten und jeder zugehörigen schreibenden Systemgrenze geprüft; ausgeblendete UI-Elemente sind kein Schutz. Standortberechtigungen und fachliche Freigaben sind davon getrennt.
 
 ## 8. Qualitäts- und Teststrategie
 

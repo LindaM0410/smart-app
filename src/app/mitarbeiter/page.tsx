@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 
 import { MitarbeiterFormular } from "./mitarbeiter-formular";
@@ -14,6 +15,7 @@ const rollenNamen: Record<string, string> = {
 };
 
 export default async function MitarbeiterSeite() {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const [mitarbeiter, aktiveStandorte] = await Promise.all([
     prisma.mitarbeiter.findMany({
       include: { hauptstandort: { select: { name: true } } },

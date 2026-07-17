@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { ladeBestellungenFuerStandort } from "@/lib/bestellung-persistenz";
 import { prisma } from "@/lib/prisma";
 import { waehleAktivenStandort } from "@/lib/standortfilter";
@@ -13,17 +14,17 @@ export default async function BestellungenSeite({
 }: {
   searchParams: Promise<{ standortId?: string }>;
 }) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const parameter = await searchParams;
   const standorte = await prisma.standort.findMany({
     where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true },
   });
   const standort = waehleAktivenStandort(standorte, parameter.standortId);
-  const [tische, reservierungen, mitarbeiter, bestellungen] = standort ? await Promise.all([
+  const [tische, reservierungen, bestellungen] = standort ? await Promise.all([
     prisma.tisch.findMany({ where: { standortId: standort.id, aktiv: true }, orderBy: { nummer: "asc" }, select: { id: true, nummer: true } }),
     prisma.reservierung.findMany({ where: { standortId: standort.id }, orderBy: { beginn: "desc" }, select: { id: true, beginn: true, gast: { select: { name: true } } } }),
-    prisma.mitarbeiter.findMany({ where: { hauptstandortId: standort.id, aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
     ladeBestellungenFuerStandort(prisma, standort.id),
-  ]) : [[], [], [], []];
+  ]) : [[], [], []];
 
   return (
     <main>
@@ -47,7 +48,7 @@ export default async function BestellungenSeite({
       <section className="karte">
         <h2>Bestellung eröffnen</h2>
         {standort ? (
-          <BestellungFormular standortId={standort.id} tische={tische} reservierungen={reservierungen} mitarbeiter={mitarbeiter} />
+          <BestellungFormular standortId={standort.id} tische={tische} reservierungen={reservierungen} />
         ) : <p className="leerzustand">Kein aktiver Standort ausgewählt.</p>}
       </section>
 
@@ -66,7 +67,6 @@ export default async function BestellungenSeite({
               standortId={bestellung.standortId}
               tische={tische}
               reservierungen={reservierungen}
-              mitarbeiter={mitarbeiter}
               bestellung={bestellung}
             />
           </article>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 
 import { GastFormular } from "./gast-formular";
@@ -7,6 +8,7 @@ import { GastFormular } from "./gast-formular";
 export const dynamic = "force-dynamic";
 
 export default async function GaesteSeite() {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const gaeste = await prisma.gast.findMany({ orderBy: { name: "asc" } });
 
   return (

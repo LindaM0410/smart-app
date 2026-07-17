@@ -28,7 +28,6 @@ type ReservierungWerte = {
   personenanzahl: number;
   status: string;
   notiz: string;
-  erstelltVonMitarbeiterId: string;
   tischIds: string[];
 };
 
@@ -131,14 +130,6 @@ export function ReservierungFormular({
           ))}
         </select>
         {status.fehler.status ? <span className="fehler">{status.fehler.status}</span> : null}
-      </label>
-
-      <label>
-        Mitarbeiterkennung des Erstellers
-        <input defaultValue={reservierung?.erstelltVonMitarbeiterId} name="erstelltVonMitarbeiterId" required />
-        {status.fehler.erstelltVonMitarbeiterId ? (
-          <span className="fehler">{status.fehler.erstelltVonMitarbeiterId}</span>
-        ) : null}
       </label>
 
       <label className="formular-breit">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 import { ladeReservierungenFuerStandort, waehleAktivenStandort } from "@/lib/standortfilter";
 
@@ -18,6 +19,7 @@ export default async function ReservierungenSeite({
 }: {
   searchParams: Promise<{ erfolg?: string; fehler?: string; standortId?: string }>;
 }) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const parameter = await searchParams;
   const [gaeste, standorte] = await Promise.all([
     prisma.gast.findMany({ where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),

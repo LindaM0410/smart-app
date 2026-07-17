@@ -3,6 +3,7 @@
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 import { aktualisiereTisch, erstelleTisch } from "@/lib/tisch-persistenz";
 import {
@@ -71,6 +72,7 @@ export async function tischAnlegen(
   _status: TischFormularStatus,
   formular: FormData,
 ): Promise<TischFormularStatus> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const eingabe = leseEingabe(formular);
   const fehler = validiereTisch(eingabe);
 
@@ -94,6 +96,7 @@ export async function tischBearbeiten(
   _status: TischFormularStatus,
   formular: FormData,
 ): Promise<TischFormularStatus> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const id = String(formular.get("id") ?? "");
   const eingabe = leseEingabe(formular);
   const fehler = validiereTisch(eingabe);
@@ -122,6 +125,7 @@ export async function tischKombinationAnlegen(
   _status: TischKombinationFormularStatus,
   formular: FormData,
 ): Promise<TischKombinationFormularStatus> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const eingabe = {
     standortId: String(formular.get("standortId") ?? "").trim(),
     tischIds: formular.getAll("tischIds").map(String),
@@ -161,6 +165,7 @@ export async function tischKombinationAnlegen(
 }
 
 export async function tischKombinationEntfernen(formular: FormData): Promise<void> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const id = String(formular.get("id") ?? "");
   if (!id) return;
 

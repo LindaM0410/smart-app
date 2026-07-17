@@ -6,7 +6,6 @@ import { bestellungAnlegen, bestellungBearbeiten, type BestellungFormularStatus 
 
 const initialerStatus: BestellungFormularStatus = {};
 
-type Auswahl = { id: string; name: string };
 type TischAuswahl = { id: string; nummer: string };
 type ReservierungAuswahl = { id: string; gast: { name: string }; beginn: Date };
 type BestellungWerte = {
@@ -21,13 +20,11 @@ export function BestellungFormular({
   standortId,
   tische,
   reservierungen,
-  mitarbeiter,
   bestellung,
 }: {
   standortId: string;
   tische: TischAuswahl[];
   reservierungen: ReservierungAuswahl[];
-  mitarbeiter: Auswahl[];
   bestellung?: BestellungWerte;
 }) {
   const aktion = bestellung ? bestellungBearbeiten : bestellungAnlegen;
@@ -45,13 +42,6 @@ export function BestellungFormular({
         </select>
       </label>
 
-      <label>Aufgenommen von
-        <select defaultValue={bestellung?.aufgenommenVonMitarbeiterId ?? ""} name="aufgenommenVonMitarbeiterId" required>
-          <option value="">Bitte wählen</option>
-          {mitarbeiter.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
-        </select>
-      </label>
-
       <label className="formular-breit">Reservierung <span className="sekundaer">(optional)</span>
         <select defaultValue={bestellung?.reservierungId ?? ""} name="reservierungId">
           <option value="">Ohne Reservierung</option>
@@ -64,7 +54,7 @@ export function BestellungFormular({
       </label>
 
       <div className="formular-abschluss">
-        <button disabled={ausstehend || tische.length === 0 || mitarbeiter.length === 0} type="submit">
+        <button disabled={ausstehend || tische.length === 0} type="submit">
           {ausstehend ? "Wird gespeichert …" : bestellung ? "Änderungen speichern" : "Bestellung eröffnen"}
         </button>
         {status.meldung ? <p className={status.erfolgreich ? "erfolg" : "fehler"} role="status">{status.meldung}</p> : null}

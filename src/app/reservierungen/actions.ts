@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { FAEHIGKEITEN, sitzungsAkteurId, verlangeFaehigkeit } from "@/lib/autorisierung";
 import {
   aktualisiereReservierung,
   erstelleReservierung,
@@ -35,7 +36,7 @@ function leseDatum(wert: FormDataEntryValue | null): Date | undefined {
   return text.length === 0 ? undefined : new Date(text);
 }
 
-function leseEingabe(formular: FormData): ReservierungEingabe {
+function leseEingabe(formular: FormData, mitarbeiterId: string): ReservierungEingabe {
   return {
     gastId: String(formular.get("gastId") ?? "").trim(),
     standortId: String(formular.get("standortId") ?? "").trim(),
@@ -44,9 +45,7 @@ function leseEingabe(formular: FormData): ReservierungEingabe {
     personenanzahl: Number(formular.get("personenanzahl")),
     status: String(formular.get("status") ?? ""),
     notiz: String(formular.get("notiz") ?? "").trim(),
-    erstelltVonMitarbeiterId: String(
-      formular.get("erstelltVonMitarbeiterId") ?? "",
-    ).trim(),
+    erstelltVonMitarbeiterId: mitarbeiterId,
     tischIds: formular.getAll("tischIds").map((wert) => String(wert).trim()),
   };
 }
@@ -91,7 +90,8 @@ export async function reservierungAnlegen(
   _status: ReservierungFormularStatus,
   formular: FormData,
 ): Promise<ReservierungFormularStatus> {
-  const eingabe = leseEingabe(formular);
+  const mitarbeiter = await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
+  const eingabe = leseEingabe(formular, sitzungsAkteurId(mitarbeiter, formular.get("erstelltVonMitarbeiterId")));
   const fehler = validiereReservierung(eingabe);
 
   if (hatReservierungValidierungsfehler(fehler)) {
@@ -114,8 +114,9 @@ export async function reservierungBearbeiten(
   _status: ReservierungFormularStatus,
   formular: FormData,
 ): Promise<ReservierungFormularStatus> {
+  const mitarbeiter = await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const id = String(formular.get("id") ?? "");
-  const eingabe = leseEingabe(formular);
+  const eingabe = leseEingabe(formular, sitzungsAkteurId(mitarbeiter, formular.get("erstelltVonMitarbeiterId")));
   const fehler = validiereReservierung(eingabe);
 
   if (hatReservierungValidierungsfehler(fehler)) {
@@ -146,6 +147,7 @@ function noShowZiel(meldung: string, standortId: string, erfolgreich = false) {
 }
 
 export async function reservierungAlsNoShowMarkieren(formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const id = String(formular.get("id") ?? "").trim();
   const standortId = String(formular.get("standortId") ?? "").trim();
   let weiterleitung: string;

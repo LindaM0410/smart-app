@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 import { ladeWalkInTischeFuerStandort, waehleAktivenStandort } from "@/lib/standortfilter";
 
@@ -12,6 +13,7 @@ type Eigenschaften = {
 };
 
 export default async function WalkInsSeite({ searchParams }: Eigenschaften) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const [parameter, standorte, gaeste] = await Promise.all([
     searchParams,
     prisma.standort.findMany({ where: { aktiv: true }, orderBy: { name: "asc" } }),

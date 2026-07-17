@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import {
   BelegungNichtOffenFehler,
   BelegungReferenzfehler,
@@ -21,6 +22,7 @@ function ziel(meldung: string, standortId: string, erfolgreich = false) {
 }
 
 export async function reservierungPlatzieren(formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const reservierungId = String(formular.get("reservierungId") ?? "");
   const tischId = String(formular.get("tischId") ?? "");
   const standortId = String(formular.get("standortId") ?? "");
@@ -45,6 +47,7 @@ export async function reservierungPlatzieren(formular: FormData) {
 }
 
 export async function tischFreigeben(formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const belegungId = String(formular.get("belegungId") ?? "");
   const standortId = String(formular.get("standortId") ?? "");
   let weiterleitung: string;

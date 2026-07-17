@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 
 import { TischFormular } from "./tisch-formular";
@@ -9,6 +10,7 @@ import { tischKombinationEntfernen } from "./actions";
 export const dynamic = "force-dynamic";
 
 export default async function TischeSeite() {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const [standorte, tische, kombinationen] = await Promise.all([
     prisma.standort.findMany({ orderBy: { name: "asc" } }),
     prisma.tisch.findMany({

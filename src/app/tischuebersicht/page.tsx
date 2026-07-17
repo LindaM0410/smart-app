@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 import { ladeTischuebersicht } from "@/lib/tischuebersicht-persistenz";
 import { berlinZeitpunkt, folgetag } from "@/lib/tischuebersicht";
@@ -25,6 +26,7 @@ function heutigeBerlinZeit() {
 }
 
 export default async function TischuebersichtSeite({ searchParams }: Eigenschaften) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const [parameter, standorte] = await Promise.all([
     searchParams,
     prisma.standort.findMany({ where: { aktiv: true }, orderBy: { name: "asc" } }),

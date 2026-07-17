@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { formatierePreis } from "@/lib/artikel";
 import { ladeGueltigesArtikelangebot } from "@/lib/artikelangebot-persistenz";
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 import { waehleAktivenStandort } from "@/lib/standortfilter";
 
@@ -12,6 +13,7 @@ export default async function ArtikelangebotSeite({
 }: {
   searchParams: Promise<{ standortId?: string }>;
 }) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const parameter = await searchParams;
   const standorte = await prisma.standort.findMany({
     where: { aktiv: true },

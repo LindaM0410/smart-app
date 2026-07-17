@@ -3,6 +3,7 @@
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { aktualisiereGast, erstelleGast } from "@/lib/gast-persistenz";
 import {
   hatGastValidierungsfehler,
@@ -44,6 +45,7 @@ export async function gastAnlegen(
   _status: GastFormularStatus,
   formular: FormData,
 ): Promise<GastFormularStatus> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const eingabe = leseEingabe(formular);
   const fehler = validiereGast(eingabe);
 
@@ -60,6 +62,7 @@ export async function gastBearbeiten(
   _status: GastFormularStatus,
   formular: FormData,
 ): Promise<GastFormularStatus> {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const id = String(formular.get("id") ?? "");
   const eingabe = leseEingabe(formular);
   const fehler = validiereGast(eingabe);

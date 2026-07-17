@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 import {
   platziereWalkIn,
@@ -21,6 +22,7 @@ function ziel(meldung: string, standortId: string, erfolgreich = false) {
 }
 
 export async function walkInPlatzieren(formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const eingabe = {
     gastId: String(formular.get("gastId") ?? "").trim(),
     standortId: String(formular.get("standortId") ?? "").trim(),

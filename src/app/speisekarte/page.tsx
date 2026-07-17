@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { formatierePreis } from "@/lib/artikel";
+import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 
 import { ArtikelFormular } from "./artikel-formular";
@@ -8,6 +9,7 @@ import { ArtikelFormular } from "./artikel-formular";
 export const dynamic = "force-dynamic";
 
 export default async function SpeisekarteSeite() {
+  await verlangeFaehigkeit(FAEHIGKEITEN.stammdatenPflegen);
   const [artikel, standorte] = await Promise.all([
     prisma.artikel.findMany({ include: { standortAngebote: true }, orderBy: [{ kategorie: "asc" }, { name: "asc" }] }),
     prisma.standort.findMany({ where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true, hatGrill: true } }),
