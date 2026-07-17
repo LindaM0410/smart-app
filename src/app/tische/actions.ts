@@ -6,6 +6,14 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { aktualisiereTisch, erstelleTisch } from "@/lib/tisch-persistenz";
 import {
+  entferneTischKombination,
+  erstelleTischKombination,
+} from "@/lib/tischkombination-persistenz";
+import {
+  validiereTischKombination,
+  type TischKombinationValidierungsfehler,
+} from "@/lib/tischkombinationen";
+import {
   hatTischValidierungsfehler,
   validiereTisch,
   type TischEingabe,
@@ -14,6 +22,12 @@ import {
 
 export type TischFormularStatus = {
   fehler: TischValidierungsfehler;
+  meldung?: string;
+  erfolgreich?: boolean;
+};
+
+export type TischKombinationFormularStatus = {
+  fehler: TischKombinationValidierungsfehler;
   meldung?: string;
   erfolgreich?: boolean;
 };
@@ -102,4 +116,59 @@ export async function tischBearbeiten(
 
   revalidatePath("/tische");
   return { fehler: {}, meldung: "Änderungen wurden gespeichert.", erfolgreich: true };
+}
+
+export async function tischKombinationAnlegen(
+  _status: TischKombinationFormularStatus,
+  formular: FormData,
+): Promise<TischKombinationFormularStatus> {
+  const eingabe = {
+    standortId: String(formular.get("standortId") ?? "").trim(),
+    tischIds: formular.getAll("tischIds").map(String),
+  };
+  const fehler = validiereTischKombination(eingabe);
+
+  if (Object.keys(fehler).length > 0) {
+    return { fehler, meldung: "Bitte die markierten Angaben prüfen." };
+  }
+
+  try {
+    await erstelleTischKombination(prisma, eingabe);
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return {
+        fehler: { tischIds: "Diese Tischkombination ist bereits vorhanden." },
+        meldung: "Bitte eine andere Tischmenge auswählen.",
+      };
+    }
+    if (error instanceof Error && error.message === "TISCHKOMBINATION_UNGUELTIGE_TISCHE") {
+      return {
+        fehler: {
+          tischIds:
+            "Alle Tische müssen aktiv, kombinierbar und dem gewählten Standort zugeordnet sein.",
+        },
+        meldung: "Die Tischkombination konnte nicht angelegt werden.",
+      };
+    }
+    throw error;
+  }
+
+  revalidatePath("/tische");
+  return { fehler: {}, meldung: "Tischkombination wurde angelegt.", erfolgreich: true };
+}
+
+export async function tischKombinationEntfernen(formular: FormData): Promise<void> {
+  const id = String(formular.get("id") ?? "");
+  if (!id) return;
+
+  try {
+    await entferneTischKombination(prisma, id);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") return;
+    throw error;
+  }
+  revalidatePath("/tische");
 }

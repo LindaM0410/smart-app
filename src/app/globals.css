@@ -127,6 +127,24 @@ h2 {
   gap: 1rem;
 }
 
+.tischkombination-formular {
+  display: grid;
+  gap: 1rem;
+}
+
+.tischkombination-formular > label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.kombinationskarte {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .standort-formular > label,
 .tisch-formular > label,
 .gast-formular > label,
@@ -328,6 +346,11 @@ button:disabled {
   }
 
   .formular-abschluss {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .kombinationskarte {
     align-items: flex-start;
     flex-direction: column;
   }

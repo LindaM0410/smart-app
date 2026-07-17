@@ -281,3 +281,22 @@ Es werden keine Öffnungszeiten, Rollen, Bestellungen, Rabatte, Rechnungen oder 
 - Die Warnung bleibt konsistent mit der bestehenden Standort-, Status- und Belegungsfilterung und benötigt kein neues Datenmodell.
 - Grenzwerte, fehlende Belegung, nicht blockierende Status, Standorttrennung und das Verschwinden nach Freigabe sind automatisiert getestet.
 - Die vollständige Testsuite mit 52 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-17 — Konfigurierbare erlaubte Tischkombinationen (BV-003)
+
+**Kontext:** Das Tischmodell kennzeichnet bislang nur, ob ein Tisch grundsätzlich kombinierbar ist. Für eine verbindliche Konfiguration muss zusätzlich gespeichert werden, welche Mengen aus mindestens zwei Tischen tatsächlich gemeinsam genutzt werden dürfen. Die konkreten Kombinationen der Standorte sind noch offen und dürfen nicht vorgegeben werden.
+
+### Entscheidung
+
+Eine erlaubte Tischkombination wird als standortgebundener Datensatz mit einer n:m-Zuordnung zu mindestens zwei unterschiedlichen Tischen persistiert. Beim Anlegen werden Tisch-IDs sortiert und zu einem kanonischen Schlüssel zusammengeführt, sodass dieselbe Tischmenge unabhängig von ihrer Auswahlreihenfolge nur einmal gespeichert werden kann.
+
+Alle Mitgliedstische müssen vorhanden, aktiv, grundsätzlich kombinierbar und demselben Standort wie die Kombination zugeordnet sein. Die serverseitige Fachoperation prüft diese Regeln in einer Transaktion. Datenbanktrigger schützen Standortbindung, Aktivstatus und Kombinierbarkeit zusätzlich und verhindern, dass ein verwendeter Tisch nachträglich eine bestehende Kombination ungültig macht. Kombinationen können ausdrücklich entfernt werden.
+
+Es werden keine Kombinationen als Stammdaten vorgegeben. Die Konfiguration wird weder für Gruppenplanung noch für automatische Tischzuordnung oder Reservierungsprüfung verwendet.
+
+### Konsequenzen
+
+- Erlaubte Kombinationen beliebig vieler Tische können in der Tischverwaltung angelegt, angezeigt und entfernt werden.
+- Standortfremde, inaktive, nicht kombinierbare und doppelte Tischmengen werden abgewiesen.
+- Bestehende Kombinationen müssen vor einer widersprechenden Änderung ihrer Mitgliedstische zuerst entfernt werden.
+- Migration, vollständige Testsuite mit 58 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

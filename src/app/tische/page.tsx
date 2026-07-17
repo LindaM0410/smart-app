@@ -3,15 +3,24 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 import { TischFormular } from "./tisch-formular";
+import { TischKombinationFormular } from "./tischkombination-formular";
+import { tischKombinationEntfernen } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function TischeSeite() {
-  const [standorte, tische] = await Promise.all([
+  const [standorte, tische, kombinationen] = await Promise.all([
     prisma.standort.findMany({ orderBy: { name: "asc" } }),
     prisma.tisch.findMany({
       include: { standort: { select: { name: true } } },
       orderBy: [{ standort: { name: "asc" } }, { nummer: "asc" }],
+    }),
+    prisma.tischKombination.findMany({
+      include: {
+        standort: { select: { name: true } },
+        tische: { include: { tisch: { select: { nummer: true } } } },
+      },
+      orderBy: [{ standort: { name: "asc" } }, { schluessel: "asc" }],
     }),
   ]);
 
@@ -32,6 +41,36 @@ export default async function TischeSeite() {
           </p>
         ) : (
           <TischFormular standorte={standorte} />
+        )}
+      </section>
+
+      <section className="standortliste">
+        <h2>Erlaubte Tischkombinationen</h2>
+        <article className="karte">
+          {standorte.filter((standort) => standort.aktiv).length === 0 ? (
+            <p className="leerzustand">Kein aktiver Standort vorhanden.</p>
+          ) : (
+            <TischKombinationFormular
+              standorte={standorte.filter((standort) => standort.aktiv)}
+              tische={tische.filter((tisch) => tisch.aktiv && tisch.kombinierbar)}
+            />
+          )}
+        </article>
+        {kombinationen.length === 0 ? (
+          <p className="leerzustand">Noch keine Tischkombination konfiguriert.</p>
+        ) : (
+          kombinationen.map((kombination) => (
+            <article className="karte kombinationskarte" key={kombination.id}>
+              <div>
+                <h3>{kombination.tische.map(({ tisch }) => `Tisch ${tisch.nummer}`).join(" + ")}</h3>
+                <p className="sekundaer">{kombination.standort.name}</p>
+              </div>
+              <form action={tischKombinationEntfernen}>
+                <input name="id" type="hidden" value={kombination.id} />
+                <button type="submit">Kombination entfernen</button>
+              </form>
+            </article>
+          ))
         )}
       </section>
 
