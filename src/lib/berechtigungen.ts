@@ -2,13 +2,14 @@ export const FAEHIGKEITEN = {
   stammdatenPflegen: "stammdatenPflegen",
   operativeAblaeufeNutzen: "operativeAblaeufeNutzen",
   kuechenstatusPflegen: "kuechenstatusPflegen",
+  bestellpositionStornieren: "bestellpositionStornieren",
 } as const;
 
 export type Faehigkeit = (typeof FAEHIGKEITEN)[keyof typeof FAEHIGKEITEN];
 
 const rollenFaehigkeiten: Record<string, readonly Faehigkeit[]> = {
-  inhaber: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen],
-  manager: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen],
+  inhaber: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren],
+  manager: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren],
   bedienung: [FAEHIGKEITEN.operativeAblaeufeNutzen],
   kueche: [FAEHIGKEITEN.kuechenstatusPflegen],
 };

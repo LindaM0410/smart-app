@@ -71,7 +71,10 @@ export function ladeBestellungenFuerStandort(datenbank: PrismaClient, standortId
       aufgenommenVonMitarbeiter: { select: { name: true } },
       positionen: {
         orderBy: { id: "asc" },
-        include: { artikel: { select: { name: true, kategorie: true } } },
+        include: {
+          artikel: { select: { name: true, kategorie: true } },
+          storniertVonMitarbeiter: { select: { name: true } },
+        },
       },
     },
   });

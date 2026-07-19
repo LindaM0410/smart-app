@@ -1,6 +1,6 @@
 # Architektur — Bella Vista Restaurant-App
 
-_Stand: 18. Juli 2026 · Status: fachliche Architektur und technisches Grundgerüst definiert_
+_Stand: 19. Juli 2026 · Status: fachliche Architektur und technisches Grundgerüst definiert_
 
 ## 1. Architekturziele
 
@@ -108,6 +108,8 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 BV-013 bündelt diese erste Rollenmatrix in die expliziten Fähigkeiten `stammdatenPflegen` und `operativeAblaeufeNutzen`. Inhaber und Manager besitzen beide Fähigkeiten, Bedienung ausschließlich die operative Fähigkeit und Küche bis zu einer späteren Küchenansicht keine der beiden. Autorisierung wird aus der serverseitig validierten Sitzung an Seiten und jeder zugehörigen schreibenden Systemgrenze geprüft; ausgeblendete UI-Elemente sind kein Schutz. Standortberechtigungen und fachliche Freigaben sind davon getrennt.
 
 BV-016 ergänzt die getrennte Fähigkeit `kuechenstatusPflegen` für Küche, Manager und Inhaber. Sie schützt die Küchenansicht und deren schreibende Systemgrenze; Bedienung erhält sie nicht. Die Küchenansicht liest ausschließlich Positionen mit den Status `offen` und `inZubereitung`. Statusänderungen sind auf `offen` → `inZubereitung` → `serviert` begrenzt und zusätzlich in der Datenbank abgesichert.
+
+BV-019 ergänzt die Fähigkeit `bestellpositionStornieren` ausschließlich für Manager und Inhaber. Sie schützt die Storno-Server-Action unabhängig von der Sichtbarkeit in der Oberfläche. Bestellpositionen dürfen nur von `offen` oder `inZubereitung` nach `storniert` wechseln; `serviert` und `storniert` sind keine zulässigen Ausgangsstatus. Die Datenbank erzwingt Übergang, berechtigten aktiven Freigabeakteur und unveränderte Positionsdaten. Stornoakteur und -zeitpunkt bleiben unmittelbar an der Position historisiert.
 
 ## 8. Qualitäts- und Teststrategie
 

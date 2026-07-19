@@ -1,6 +1,6 @@
 # Backlog — Bella Vista Restaurant-App
 
-_Stand: 18. Juli 2026_
+_Stand: 19. Juli 2026_
 
 _Stabile Feature-IDs. IDs werden nicht umnummeriert oder wiederverwendet. Quelle aller initialen Einträge: `docs/spec.md`._
 
@@ -60,7 +60,7 @@ Ziel: Bestellungen und Rechnungen sollen weniger Fehler verursachen.
 | BV-016 | Küchenansicht bereitstellen | 2 | done | Küche, Manager und Inhaber sehen unter `/kueche` ausschließlich zubereitungsrelevante Positionen mit Tisch, Standort, Artikel, Menge und Sonderwunsch und dürfen serverseitig nur `offen` → `inZubereitung` → `serviert` ausführen; Bedienung bleibt ausgeschlossen (mit 108 Tests, TypeScript-Prüfung und Produktions-Build verifiziert am 19.07.2026) |
 | BV-017 | Rechnungen erzeugen | 2 | hypo | Rechnung aus Bestellung, Zahler, Zahlungsart und berechenbaren Positionen erzeugen |
 | BV-018 | Bella-Card-Rabatt anwenden | 2 | hypo | 15 % Rabatt nur fuer zahlenden Gast mit aktiver Bella-Card und Freigabe durch Inhaber/Manager anwenden |
-| BV-019 | Storno-Freigabe erzwingen | 2 | hypo | Stornierte Bestellpositionen werden nur mit Freigabe durch Inhaber/Manager wirksam und nachvollziehbar gespeichert |
+| BV-019 | Storno-Freigabe erzwingen | 2 | done | Manager und Inhaber dürfen offene oder in Zubereitung befindliche Bestellpositionen serverseitig geprüft stornieren; Bedienung und Küche bleiben ausgeschlossen. Stornierte Positionen sind mit Freigabeakteur und Zeitpunkt historisiert, unveränderlich, in der Bestellung sichtbar und aus der Küchenarbeit ausgeschlossen; `serviert` bleibt mangels fachlicher Freigabe nicht stornierbar (mit 114 Tests, TypeScript-Prüfung und Produktions-Build verifiziert am 19.07.2026) |
 | BV-032 | Bestellstatus verwalten | 2 | hypo | Bestellungen können `offen`, `inBearbeitung`, `abgeschlossen`, `bezahlt` oder `storniert` sein |
 | BV-033 | Rechnungsbetrag korrekt berechnen | 2 | hypo | Endbetrag aus nicht stornierten Positionen, Preis-Snapshots und Rabattregel ohne Float-Beträge berechnen |
 | BV-034 | Zahlungsstatus erfassen | 2 | hypo | Rechnungen mit Status `offen`, `bezahlt` oder `storniert` und Zahlungsart `bar` oder `karte` führen |

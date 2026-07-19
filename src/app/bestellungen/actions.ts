@@ -10,6 +10,7 @@ import {
   erstelleBestellposition,
 } from "@/lib/bestellposition-persistenz";
 import { validiereBestellposition, type BestellpositionValidierungsfehler } from "@/lib/bestellpositionen";
+import { storniereBestellposition } from "@/lib/bestellposition-storno-persistenz";
 import {
   aktualisiereBestellung,
   BestellungReferenzfehler,
@@ -139,4 +140,12 @@ export async function bestellpositionBearbeiten(
     (eingabe) => aktualisiereBestellposition(prisma, id, eingabe),
     "Position wurde gespeichert.",
   );
+}
+
+export async function bestellpositionStornieren(formular: FormData) {
+  const mitarbeiter = await verlangeFaehigkeit(FAEHIGKEITEN.bestellpositionStornieren);
+  const positionId = String(formular.get("positionId") ?? "").trim();
+  await storniereBestellposition(prisma, positionId, mitarbeiter.id);
+  revalidatePath("/bestellungen");
+  revalidatePath("/kueche");
 }

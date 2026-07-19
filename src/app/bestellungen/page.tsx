@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
+import { FAEHIGKEITEN, hatFaehigkeit, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { formatierePreis } from "@/lib/artikel";
 import { ladeGueltigesArtikelangebot } from "@/lib/artikelangebot-persistenz";
 import { ladeBestellungenFuerStandort } from "@/lib/bestellung-persistenz";
@@ -9,6 +9,7 @@ import { waehleAktivenStandort } from "@/lib/standortfilter";
 
 import { BestellungFormular } from "./bestellung-formular";
 import { BestellpositionFormular } from "./bestellposition-formular";
+import { bestellpositionStornieren } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,8 @@ export default async function BestellungenSeite({
 }: {
   searchParams: Promise<{ standortId?: string }>;
 }) {
-  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
+  const mitarbeiter = await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
+  const darfStornieren = hatFaehigkeit(mitarbeiter, FAEHIGKEITEN.bestellpositionStornieren);
   const parameter = await searchParams;
   const standorte = await prisma.standort.findMany({
     where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true },
@@ -79,9 +81,30 @@ export default async function BestellungenSeite({
                 <div className="positionszeile" key={position.id}>
                   <div className="positionspreis">
                     <span>{position.menge} × {formatierePreis(position.einzelpreisCent)}</span>
-                    <span className="status aktiv">offen</span>
+                    <span className={`status ${position.status === "storniert" ? "inaktiv" : "aktiv"}`}>
+                      {position.status === "inZubereitung" ? "in Zubereitung" : position.status}
+                    </span>
                   </div>
-                  <BestellpositionFormular bestellungId={bestellung.id} artikel={artikel} position={position} />
+                  {position.status === "offen" ? (
+                    <BestellpositionFormular bestellungId={bestellung.id} artikel={artikel} position={position} />
+                  ) : (
+                    <div>
+                      <strong>{position.artikel.name}</strong>
+                      <p className="sekundaer">Sonderwunsch: {position.sonderwunsch || "—"}</p>
+                    </div>
+                  )}
+                  {darfStornieren && ["offen", "inZubereitung"].includes(position.status) ? (
+                    <form action={bestellpositionStornieren}>
+                      <input name="positionId" type="hidden" value={position.id} />
+                      <button type="submit">Position stornieren</button>
+                    </form>
+                  ) : null}
+                  {position.status === "storniert" && position.storniertAm ? (
+                    <p className="sekundaer">
+                      Storniert am {position.storniertAm.toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}
+                      {position.storniertVonMitarbeiter ? ` durch ${position.storniertVonMitarbeiter.name}` : ""}
+                    </p>
+                  ) : null}
                 </div>
               ))}
               <h4>Position hinzufügen</h4>

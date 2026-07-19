@@ -493,3 +493,20 @@ Die Ansicht zeigt ausschließlich Positionen mit Status `offen` oder `inZubereit
 - Preis-Snapshot, Menge, Sonderwunsch, Artikel- und Bestellzuordnung werden durch einen Küchenstatuswechsel nicht verändert.
 - Rechnungen, Zahlungen, Rabatte, Stornos, Freigaben, Auditierung, Gruppenfunktionen, Catering, Seed-Daten und Standortberechtigungen werden nicht eingeführt.
 - Vollständige Testsuite mit 108 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-19 — Kontrolliertes Storno von Bestellpositionen (BV-019)
+
+**Kontext:** Bestellpositionen besitzen bereits die Küchenstatus `offen`, `inZubereitung` und `serviert`. Stornos sind eine kritische Aktion, die Bedienung und Küche nicht selbstständig ausführen dürfen. Ein Storno nach dem Servieren ist fachlich bislang nicht vorgesehen.
+
+### Entscheidung
+
+Die eigene Fähigkeit `bestellpositionStornieren` wird ausschließlich Manager und Inhaber zugeordnet und bei jedem Aufruf der Storno-Server-Action aus der validierten Sitzung geprüft. Die Position darf nur von `offen` oder `inZubereitung` nach `storniert` wechseln. `serviert` → `storniert` wird mangels bestehender fachlicher Festlegung abgelehnt; `storniert` ist ein unveränderlicher Endstatus.
+
+Ein wirksames Storno speichert Status, Zeitpunkt und den aktiven freigebenden Mitarbeiter gemeinsam. Artikel, Bestellung, Menge, Sonderwunsch und Preis-Snapshot bleiben unverändert. Ein Datenbanktrigger erzwingt die Statusfolge, die Rolle des Freigebenden sowie die Unveränderlichkeit der Positionsdaten auch bei direkten Schreibzugriffen. Die bestehende Bestellansicht zeigt stornierte Positionen weiterhin mit der minimalen Stornohistorie, während die Küchenansicht sie nicht als zubereitungsrelevant lädt.
+
+### Konsequenzen
+
+- Manipulierte Server-Action-Aufrufe durch Bedienung oder Küche werden vor der Fachoperation abgelehnt.
+- Es entsteht kein allgemeines Auditmodell und kein Antrags- oder Mehrpersonen-Freigabeverfahren.
+- Rechnung, Zahlung, Rabatt, Catering, Gruppenfunktionen sowie Seed- und Beispieldaten bleiben unverändert außerhalb dieses Slices.
+- Vollständige Testsuite mit 114 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

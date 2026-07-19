@@ -24,13 +24,13 @@ model Standort {
 }
 
 model Artikel {
-  id               String            @id @default(cuid())
-  name             String
-  kategorie        String
-  preisCent        Int
-  benoetigtGrill   Boolean           @default(false)
-  aktiv            Boolean           @default(true)
-  standortAngebote ArtikelStandort[]
+  id                String            @id @default(cuid())
+  name              String
+  kategorie         String
+  preisCent         Int
+  benoetigtGrill    Boolean           @default(false)
+  aktiv             Boolean           @default(true)
+  standortAngebote  ArtikelStandort[]
   bestellpositionen Bestellposition[]
 }
 
@@ -45,16 +45,17 @@ model ArtikelStandort {
 }
 
 model Mitarbeiter {
-  id                String                        @id @default(cuid())
-  name              String
-  benutzername      String                        @unique
-  rolle             String
-  hauptstandortId   String
-  aktiv             Boolean                       @default(true)
-  hauptstandort     Standort                      @relation(fields: [hauptstandortId], references: [id], onDelete: Restrict)
-  bestellungen      Bestellung[]
-  authentifizierung MitarbeiterAuthentifizierung?
-  sitzungen         MitarbeiterSitzung[]
+  id                   String                        @id @default(cuid())
+  name                 String
+  benutzername         String                        @unique
+  rolle                String
+  hauptstandortId      String
+  aktiv                Boolean                       @default(true)
+  hauptstandort        Standort                      @relation(fields: [hauptstandortId], references: [id], onDelete: Restrict)
+  bestellungen         Bestellung[]
+  storniertePositionen Bestellposition[]             @relation("BestellpositionStorno")
+  authentifizierung    MitarbeiterAuthentifizierung?
+  sitzungen            MitarbeiterSitzung[]
 
   @@index([hauptstandortId])
 }
@@ -152,17 +153,17 @@ model Reservierung {
 }
 
 model Bestellung {
-  id                          String        @id @default(cuid())
+  id                          String            @id @default(cuid())
   standortId                  String
   tischId                     String
   reservierungId              String?
   aufgenommenVonMitarbeiterId String
-  status                      String        @default("offen")
-  erstelltAm                  DateTime      @default(now())
-  standort                    Standort      @relation(fields: [standortId], references: [id], onDelete: Restrict)
-  tisch                       Tisch         @relation(fields: [tischId], references: [id], onDelete: Restrict)
-  reservierung                Reservierung? @relation(fields: [reservierungId], references: [id], onDelete: Restrict)
-  aufgenommenVonMitarbeiter   Mitarbeiter   @relation(fields: [aufgenommenVonMitarbeiterId], references: [id], onDelete: Restrict)
+  status                      String            @default("offen")
+  erstelltAm                  DateTime          @default(now())
+  standort                    Standort          @relation(fields: [standortId], references: [id], onDelete: Restrict)
+  tisch                       Tisch             @relation(fields: [tischId], references: [id], onDelete: Restrict)
+  reservierung                Reservierung?     @relation(fields: [reservierungId], references: [id], onDelete: Restrict)
+  aufgenommenVonMitarbeiter   Mitarbeiter       @relation(fields: [aufgenommenVonMitarbeiterId], references: [id], onDelete: Restrict)
   positionen                  Bestellposition[]
 
   @@index([standortId])
@@ -172,18 +173,22 @@ model Bestellung {
 }
 
 model Bestellposition {
-  id                String     @id @default(cuid())
-  bestellungId      String
-  artikelId         String
-  menge             Int
-  einzelpreisCent   Int
-  sonderwunsch      String
-  status            String     @default("offen")
-  bestellung        Bestellung @relation(fields: [bestellungId], references: [id], onDelete: Restrict)
-  artikel           Artikel    @relation(fields: [artikelId], references: [id], onDelete: Restrict)
+  id                        String       @id @default(cuid())
+  bestellungId              String
+  artikelId                 String
+  menge                     Int
+  einzelpreisCent           Int
+  sonderwunsch              String
+  status                    String       @default("offen")
+  storniertAm               DateTime?
+  storniertVonMitarbeiterId String?
+  bestellung                Bestellung   @relation(fields: [bestellungId], references: [id], onDelete: Restrict)
+  artikel                   Artikel      @relation(fields: [artikelId], references: [id], onDelete: Restrict)
+  storniertVonMitarbeiter   Mitarbeiter? @relation("BestellpositionStorno", fields: [storniertVonMitarbeiterId], references: [id], onDelete: Restrict)
 
   @@index([bestellungId])
   @@index([artikelId])
+  @@index([storniertVonMitarbeiterId])
 }
 
 model Belegung {
