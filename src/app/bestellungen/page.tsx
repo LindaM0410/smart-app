@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FAEHIGKEITEN, hatFaehigkeit, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { formatierePreis } from "@/lib/artikel";
 import { ladeGueltigesArtikelangebot } from "@/lib/artikelangebot-persistenz";
+import { berechneBruttobetragCent } from "@/lib/bestellbetrag";
 import { ladeBestellungenFuerStandort } from "@/lib/bestellung-persistenz";
 import { prisma } from "@/lib/prisma";
 import { waehleAktivenStandort } from "@/lib/standortfilter";
@@ -76,7 +77,10 @@ export default async function BestellungenSeite({
               bestellung={bestellung}
             />
             <div className="positionsbereich">
-              <h4>Positionen</h4>
+              <div className="kartenkopf">
+                <h4>Positionen</h4>
+                <strong>Zwischensumme: {formatierePreis(berechneBruttobetragCent(bestellung.positionen))}</strong>
+              </div>
               {bestellung.positionen.length === 0 ? <p className="leerzustand">Noch keine Position aufgenommen.</p> : bestellung.positionen.map((position) => (
                 <div className="positionszeile" key={position.id}>
                   <div className="positionspreis">

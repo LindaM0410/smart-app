@@ -510,3 +510,20 @@ Ein wirksames Storno speichert Status, Zeitpunkt und den aktiven freigebenden Mi
 - Es entsteht kein allgemeines Auditmodell und kein Antrags- oder Mehrpersonen-Freigabeverfahren.
 - Rechnung, Zahlung, Rabatt, Catering, Gruppenfunktionen sowie Seed- und Beispieldaten bleiben unverändert außerhalb dieses Slices.
 - Vollständige Testsuite mit 114 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-19 — Berechenbarer Bruttobetrag aus Cent-Preis-Snapshots (BV-033)
+
+**Kontext:** Bestellpositionen besitzen positive ganzzahlige Mengen, unveränderliche Preis-Snapshots in Cent und die Status `offen`, `inZubereitung`, `serviert` oder `storniert`. Eine Rechnung, Rabatt- und Zahlungslogik existieren noch nicht.
+
+### Entscheidung
+
+Eine serverseitige Domänenfunktion berechnet den aktuellen Bruttobetrag einer Bestellung als Summe aus `menge × einzelpreisCent`. Sie arbeitet ausschließlich mit sicheren Ganzzahlen und weist unsichere Eingaben, Positionsprodukte oder Gesamtsummen zurück. Positionen mit dem Status `storniert` werden ausgeschlossen; alle anderen vorhandenen Positionsstatus werden einbezogen. Eine Bestellung ohne Positionen ergibt null Cent.
+
+Die bestehende Bestellansicht zeigt den abgeleiteten Betrag als Zwischensumme an. Der Betrag wird weder separat noch als Rechnung persistiert.
+
+### Konsequenzen
+
+- Offene, in Zubereitung befindliche und servierte Positionen tragen mit ihrem Preis-Snapshot zum Bruttobetrag bei; stornierte Positionen nicht.
+- Die Berechnung bleibt nach späteren Artikelpreisänderungen stabil und verwendet keine Fließkommaarithmetik.
+- Rechnungen, Zahler, Rabatte, Zahlungsarten, Zahlungsstatus, Teilrechnungen, Bestellstatusänderungen und Auditierung werden nicht eingeführt.
+- Mehrere Positionen, Mengen größer eins, alle relevanten Status, Stornos, leere Bestellungen, große Centbeträge und Zahlenbereichsüberschreitungen sind automatisiert getestet; vollständige Testsuite mit 120 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

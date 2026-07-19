@@ -62,7 +62,7 @@ Ziel: Bestellungen und Rechnungen sollen weniger Fehler verursachen.
 | BV-018 | Bella-Card-Rabatt anwenden | 2 | hypo | 15 % Rabatt nur fuer zahlenden Gast mit aktiver Bella-Card und Freigabe durch Inhaber/Manager anwenden |
 | BV-019 | Storno-Freigabe erzwingen | 2 | done | Manager und Inhaber dürfen offene oder in Zubereitung befindliche Bestellpositionen serverseitig geprüft stornieren; Bedienung und Küche bleiben ausgeschlossen. Stornierte Positionen sind mit Freigabeakteur und Zeitpunkt historisiert, unveränderlich, in der Bestellung sichtbar und aus der Küchenarbeit ausgeschlossen; `serviert` bleibt mangels fachlicher Freigabe nicht stornierbar (mit 114 Tests, TypeScript-Prüfung und Produktions-Build verifiziert am 19.07.2026) |
 | BV-032 | Bestellstatus verwalten | 2 | hypo | Bestellungen können `offen`, `inBearbeitung`, `abgeschlossen`, `bezahlt` oder `storniert` sein |
-| BV-033 | Rechnungsbetrag korrekt berechnen | 2 | hypo | Endbetrag aus nicht stornierten Positionen, Preis-Snapshots und Rabattregel ohne Float-Beträge berechnen |
+| BV-033 | Rechnungsbetrag korrekt berechnen | 2 | done | Berechenbaren Bruttobetrag aus Menge und unveränderlichem Cent-Preis-Snapshot aller nicht stornierten Positionen ohne Fließkommaarithmetik ermitteln; leere Bestellungen ergeben 0 Cent, unsichere Ganzzahloperationen werden abgewiesen (mit 120 Tests, TypeScript-Prüfung und Produktions-Build verifiziert am 19.07.2026) |
 | BV-034 | Zahlungsstatus erfassen | 2 | hypo | Rechnungen mit Status `offen`, `bezahlt` oder `storniert` und Zahlungsart `bar` oder `karte` führen |
 | BV-035 | Bestellung und Rechnung standortkonsistent halten | 2 | hypo | Bestellung, Tisch, Reservierung, Artikelverfügbarkeit und Mitarbeitender gehören zum gleichen Standortkontext |
 

@@ -85,6 +85,7 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 - Stornierte Positionen tragen nicht zum Rechnungsbetrag bei.
 - Rechnungsbeträge werden aus unveränderlichen Preis-Snapshots der Positionen berechnet; spätere Menüpreisänderungen verändern alte Bestellungen nicht.
 - Geld wird als Dezimalwert bzw. kleinste Währungseinheit gespeichert, nie als Float.
+- BV-033 berechnet den aktuellen Bruttobetrag einer Bestellung ausschließlich als Summe ganzzahliger Centprodukte aus Menge und Preis-Snapshot. Alle nicht stornierten Positionsstatus werden einbezogen; leere Bestellungen ergeben null Cent und unsichere Ganzzahloperationen werden abgewiesen. Der Betrag wird nicht als Rechnung persistiert.
 - Bella-Card-Rabatt beträgt 15 % und erfordert einen berechtigten Zahler plus berechtigte Freigabe.
 
 ### Standort und Angebot
