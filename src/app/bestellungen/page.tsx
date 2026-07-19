@@ -10,7 +10,7 @@ import { waehleAktivenStandort } from "@/lib/standortfilter";
 
 import { BestellungFormular } from "./bestellung-formular";
 import { BestellpositionFormular } from "./bestellposition-formular";
-import { bestellpositionStornieren } from "./actions";
+import { bestellpositionStornieren, rechnungErzeugen } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +37,7 @@ export default async function BestellungenSeite({
     <main>
       <Link className="zurueck" href="/">← Startseite</Link>
       <header className="seitenkopf">
-        <p className="kennung">BV-015</p>
+        <p className="kennung">BV-017</p>
         <h1>Bestellungen pro Tisch</h1>
         <p>Offene Bestellungen pflegen und Positionen aus dem gültigen Standortangebot aufnehmen.</p>
       </header>
@@ -113,6 +113,22 @@ export default async function BestellungenSeite({
               ))}
               <h4>Position hinzufügen</h4>
               {artikel.length > 0 ? <BestellpositionFormular bestellungId={bestellung.id} artikel={artikel} /> : <p className="leerzustand">Für diesen Standort ist kein aktiver Artikel verfügbar.</p>}
+            </div>
+            <div className="positionsbereich">
+              <h4>Rechnung</h4>
+              {bestellung.rechnung ? (
+                <div className="kartenkopf">
+                  <strong>Bruttobetrag: {formatierePreis(bestellung.rechnung.bruttobetragCent)}</strong>
+                  <span className="status aktiv">{bestellung.rechnung.status}</span>
+                </div>
+              ) : bestellung.positionen.some((position) => position.status !== "storniert") ? (
+                <form action={rechnungErzeugen}>
+                  <input name="bestellungId" type="hidden" value={bestellung.id} />
+                  <button type="submit">Rechnung erzeugen</button>
+                </form>
+              ) : (
+                <p className="leerzustand">Für eine Rechnung ist mindestens eine berechenbare Position erforderlich.</p>
+              )}
             </div>
           </article>
         ))}

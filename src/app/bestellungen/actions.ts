@@ -18,6 +18,7 @@ import {
   type BestellungEingabe,
 } from "@/lib/bestellung-persistenz";
 import { prisma } from "@/lib/prisma";
+import { erstelleRechnung, RechnungNichtMoeglichFehler } from "@/lib/rechnung-persistenz";
 
 export type BestellungFormularStatus = {
   meldung?: string;
@@ -148,4 +149,18 @@ export async function bestellpositionStornieren(formular: FormData) {
   await storniereBestellposition(prisma, positionId, mitarbeiter.id);
   revalidatePath("/bestellungen");
   revalidatePath("/kueche");
+}
+
+export async function rechnungErzeugen(formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.rechnungErzeugen);
+  const bestellungId = String(formular.get("bestellungId") ?? "").trim();
+  if (!bestellungId) return;
+
+  try {
+    await erstelleRechnung(prisma, bestellungId);
+  } catch (error) {
+    if (error instanceof RechnungNichtMoeglichFehler) return;
+    throw error;
+  }
+  revalidatePath("/bestellungen");
 }

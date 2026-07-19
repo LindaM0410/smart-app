@@ -527,3 +527,20 @@ Die bestehende Bestellansicht zeigt den abgeleiteten Betrag als Zwischensumme an
 - Die Berechnung bleibt nach späteren Artikelpreisänderungen stabil und verwendet keine Fließkommaarithmetik.
 - Rechnungen, Zahler, Rabatte, Zahlungsarten, Zahlungsstatus, Teilrechnungen, Bestellstatusänderungen und Auditierung werden nicht eingeführt.
 - Mehrere Positionen, Mengen größer eins, alle relevanten Status, Stornos, leere Bestellungen, große Centbeträge und Zahlenbereichsüberschreitungen sind automatisiert getestet; vollständige Testsuite mit 120 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-19 — Unveränderliche Rechnung je Bestellung (BV-017)
+
+**Kontext:** Bestellungen enthalten Positionen mit unveränderlichen Cent-Preis-Snapshots und können ihren Bruttobetrag serverseitig ohne stornierte Positionen berechnen. Für die Abrechnung fehlt eine eigene Rechnung, ohne dabei Zahlung, Rabatt, Teilrechnung oder Bestellstatusänderung vorwegzunehmen.
+
+### Entscheidung
+
+Eine Rechnung referenziert genau eine Bestellung und speichert den bei ihrer Erzeugung serverseitig berechneten Bruttobetrag als ganzzahligen Cent-Snapshot. Der Client übermittelt ausschließlich die Bestell-ID; Betrag und initialer Status `offen` werden an der serverseitigen Systemgrenze festgelegt. Eine Bestellung benötigt mindestens eine nicht stornierte Position, wobei auch ein korrekt berechneter Betrag von null Cent zulässig bleibt.
+
+Pro Bestellung darf höchstens eine Rechnung existieren. Eine eindeutige Datenbankbeziehung sowie Trigger sichern zusätzlich den korrekten Initialstatus, die Übereinstimmung mit den berechenbaren Positionen und die Unveränderlichkeit des Snapshots. Die Fähigkeit `rechnungErzeugen` ist ausschließlich Inhaber, Manager und Bedienung zugeordnet; Küche bleibt ausgeschlossen. Die Rechnung wird in der bestehenden Bestellansicht angezeigt.
+
+### Konsequenzen
+
+- Spätere Änderungen an Positionen verändern den gespeicherten Rechnungsbetrag nicht.
+- Stornierte Positionen tragen nicht zum Snapshot bei; leere und ausschließlich stornierte Bestellungen werden abgelehnt.
+- Zahlung, Zahlungsart, weitere Zahlungsstatus, Rabatt, Teilrechnung, Rechnungsstorno, Bestellstatusänderung, Auditierung sowie Seed- und Beispieldaten werden nicht eingeführt.
+- Berechnung, Stornoausschluss, leere und ausschließlich stornierte Bestellungen, Null-Cent-Betrag, Eindeutigkeit, Snapshot-Unveränderlichkeit, manipulierte Beträge und Rollenmatrix sind automatisiert getestet; vollständige Testsuite mit 125 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.

@@ -165,11 +165,21 @@ model Bestellung {
   reservierung                Reservierung?     @relation(fields: [reservierungId], references: [id], onDelete: Restrict)
   aufgenommenVonMitarbeiter   Mitarbeiter       @relation(fields: [aufgenommenVonMitarbeiterId], references: [id], onDelete: Restrict)
   positionen                  Bestellposition[]
+  rechnung                    Rechnung?
 
   @@index([standortId])
   @@index([tischId])
   @@index([reservierungId])
   @@index([aufgenommenVonMitarbeiterId])
+}
+
+model Rechnung {
+  id                 String     @id @default(cuid())
+  bestellungId       String     @unique
+  bruttobetragCent   Int
+  status             String     @default("offen")
+  erstelltAm         DateTime   @default(now())
+  bestellung         Bestellung @relation(fields: [bestellungId], references: [id], onDelete: Restrict)
 }
 
 model Bestellposition {
