@@ -215,6 +215,19 @@ h2 {
   align-content: center;
 }
 
+.kuechenposition {
+  display: grid;
+  gap: 1rem;
+}
+
+.kuechenposition h2 {
+  margin: 0.2rem 0 0;
+}
+
+.kuechenposition form {
+  justify-self: start;
+}
+
 .standort-formular > label:nth-of-type(2) {
   grid-column: span 2;
 }

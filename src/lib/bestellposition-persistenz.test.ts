@@ -92,7 +92,7 @@ test("bearbeitet nur Menge und Sonderwunsch und bewahrt den Preis-Snapshot", asy
   assert.equal(bearbeitet.status, "offen");
 });
 
-test("Datenbank verhindert manipulierte Preise, Status und Standortwechsel", async (t) => {
+test("Datenbank verhindert manipulierte Preise und Standortwechsel", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
   await assert.rejects(datenbank.bestellposition.create({ data: {
     bestellungId: "bestellung-k", artikelId: "pasta", menge: 1, einzelpreisCent: 1, sonderwunsch: "", status: "offen",
@@ -100,7 +100,6 @@ test("Datenbank verhindert manipulierte Preise, Status und Standortwechsel", asy
   const position = await erstelleBestellposition(datenbank, {
     bestellungId: "bestellung-k", artikelId: "pasta", menge: 1, sonderwunsch: "",
   });
-  await assert.rejects(datenbank.bestellposition.update({ where: { id: position.id }, data: { status: "inZubereitung" } }));
   await assert.rejects(datenbank.bestellposition.update({ where: { id: position.id }, data: { einzelpreisCent: 1 } }));
   await assert.rejects(datenbank.bestellung.update({ where: { id: "bestellung-k" }, data: {
     standortId: "spandau", tischId: "tisch-s", aufgenommenVonMitarbeiterId: "mit-s",

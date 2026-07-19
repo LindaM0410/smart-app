@@ -1,15 +1,16 @@
 export const FAEHIGKEITEN = {
   stammdatenPflegen: "stammdatenPflegen",
   operativeAblaeufeNutzen: "operativeAblaeufeNutzen",
+  kuechenstatusPflegen: "kuechenstatusPflegen",
 } as const;
 
 export type Faehigkeit = (typeof FAEHIGKEITEN)[keyof typeof FAEHIGKEITEN];
 
 const rollenFaehigkeiten: Record<string, readonly Faehigkeit[]> = {
-  inhaber: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen],
-  manager: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen],
+  inhaber: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen],
+  manager: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen],
   bedienung: [FAEHIGKEITEN.operativeAblaeufeNutzen],
-  kueche: [],
+  kueche: [FAEHIGKEITEN.kuechenstatusPflegen],
 };
 
 export class ZugriffVerweigertFehler extends Error {
@@ -40,6 +41,7 @@ export function faehigkeitFuerPfad(pfad: string): Faehigkeit | null {
   if (["/gaeste", "/reservierungen", "/tischuebersicht", "/walk-ins", "/belegungen", "/bestellungen"].includes(erstesSegment)) {
     return FAEHIGKEITEN.operativeAblaeufeNutzen;
   }
+  if (erstesSegment === "/kueche") return FAEHIGKEITEN.kuechenstatusPflegen;
   return null;
 }
 

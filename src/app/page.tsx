@@ -15,6 +15,7 @@ export default async function Startseite({
   if (!mitarbeiter) redirect("/anmeldung");
   const darfStammdatenPflegen = hatFaehigkeit(mitarbeiter, FAEHIGKEITEN.stammdatenPflegen);
   const darfOperativArbeiten = hatFaehigkeit(mitarbeiter, FAEHIGKEITEN.operativeAblaeufeNutzen);
+  const darfKuechenstatusPflegen = hatFaehigkeit(mitarbeiter, FAEHIGKEITEN.kuechenstatusPflegen);
   return (
     <main>
       <header className="seitenkopf">
@@ -75,11 +76,17 @@ export default async function Startseite({
           <span>Offene Bestellungen und ihre Positionen aufnehmen</span>
         </Link>
         </> : null}
+        {darfKuechenstatusPflegen ? (
+          <Link className="funktionskarte" href="/kueche">
+            <strong>Küchenansicht</strong>
+            <span>Offene Positionen zubereiten und als serviert markieren</span>
+          </Link>
+        ) : null}
       </nav>
-      {!darfStammdatenPflegen && !darfOperativArbeiten ? (
+      {!darfStammdatenPflegen && !darfOperativArbeiten && !darfKuechenstatusPflegen ? (
         <section className="karte">
           <h2>Eingeschränkter Zugang</h2>
-          <p>Für die Küche ist noch keine passende Arbeitsansicht vorhanden.</p>
+          <p>Für diese Rolle ist keine Arbeitsansicht vorhanden.</p>
         </section>
       ) : null}
     </main>

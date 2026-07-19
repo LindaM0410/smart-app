@@ -107,6 +107,8 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 
 BV-013 bündelt diese erste Rollenmatrix in die expliziten Fähigkeiten `stammdatenPflegen` und `operativeAblaeufeNutzen`. Inhaber und Manager besitzen beide Fähigkeiten, Bedienung ausschließlich die operative Fähigkeit und Küche bis zu einer späteren Küchenansicht keine der beiden. Autorisierung wird aus der serverseitig validierten Sitzung an Seiten und jeder zugehörigen schreibenden Systemgrenze geprüft; ausgeblendete UI-Elemente sind kein Schutz. Standortberechtigungen und fachliche Freigaben sind davon getrennt.
 
+BV-016 ergänzt die getrennte Fähigkeit `kuechenstatusPflegen` für Küche, Manager und Inhaber. Sie schützt die Küchenansicht und deren schreibende Systemgrenze; Bedienung erhält sie nicht. Die Küchenansicht liest ausschließlich Positionen mit den Status `offen` und `inZubereitung`. Statusänderungen sind auf `offen` → `inZubereitung` → `serviert` begrenzt und zusätzlich in der Datenbank abgesichert.
+
 ## 8. Qualitäts- und Teststrategie
 
 - Unit-Tests für Zeitintervall-, Preis-, Rabatt- und Statuslogik.

@@ -476,3 +476,20 @@ Neue Positionen erhalten ausschließlich den Status `offen`. Beim Bearbeiten kö
 - Spätere Artikelpreisänderungen verändern vorhandene Preis-Snapshots nicht.
 - Küchenansicht, weitere Positionsstatus, Storno, Rechnung, Zahlung, Rabatt, Auditierung sowie Seed- und Beispieldaten werden nicht eingeführt.
 - Migration, vollständige Testsuite mit 103 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.
+
+## 2026-07-19 — Getrennte Küchenansicht mit linearer Statusfolge (BV-016)
+
+**Kontext:** Offene Bestellpositionen sind vorhanden, der Küche fehlt jedoch eine auf die Zubereitung begrenzte Arbeitsansicht. Die bestehende operative Fähigkeit würde der Küche zugleich Zugriff auf fachfremde Funktionen geben.
+
+### Entscheidung
+
+Die neue Fähigkeit `kuechenstatusPflegen` wird ausschließlich Küche, Manager und Inhaber zugeordnet. Sie schützt sowohl die Seite `/kueche` als auch die zugehörige Server Action und wird bei jeder Anfrage aus der serverseitig validierten Mitarbeitersitzung geprüft. Bedienung erhält diese Fähigkeit nicht.
+
+Die Ansicht zeigt ausschließlich Positionen mit Status `offen` oder `inZubereitung` und nennt Standort, Tisch, Artikel, Menge und Sonderwunsch. Der Status kann ausschließlich linear von `offen` nach `inZubereitung` und anschließend nach `serviert` wechseln. Die Fachoperation prüft den erwarteten Vorgängerstatus innerhalb einer Transaktion; ein Datenbanktrigger weist übersprungene, rückwärts gerichtete und unbekannte Übergänge auch bei direkten Schreibzugriffen ab.
+
+### Konsequenzen
+
+- Servierte Positionen verschwinden aus der zubereitungsrelevanten Arbeitsliste.
+- Preis-Snapshot, Menge, Sonderwunsch, Artikel- und Bestellzuordnung werden durch einen Küchenstatuswechsel nicht verändert.
+- Rechnungen, Zahlungen, Rabatte, Stornos, Freigaben, Auditierung, Gruppenfunktionen, Catering, Seed-Daten und Standortberechtigungen werden nicht eingeführt.
+- Vollständige Testsuite mit 108 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
