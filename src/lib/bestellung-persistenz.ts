@@ -69,6 +69,10 @@ export function ladeBestellungenFuerStandort(datenbank: PrismaClient, standortId
       tisch: { select: { nummer: true } },
       reservierung: { select: { id: true, gast: { select: { name: true } } } },
       aufgenommenVonMitarbeiter: { select: { name: true } },
+      positionen: {
+        orderBy: { id: "asc" },
+        include: { artikel: { select: { name: true, kategorie: true } } },
+      },
     },
   });
 }

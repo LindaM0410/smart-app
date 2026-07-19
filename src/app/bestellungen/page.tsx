@@ -1,11 +1,14 @@
 import Link from "next/link";
 
 import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
+import { formatierePreis } from "@/lib/artikel";
+import { ladeGueltigesArtikelangebot } from "@/lib/artikelangebot-persistenz";
 import { ladeBestellungenFuerStandort } from "@/lib/bestellung-persistenz";
 import { prisma } from "@/lib/prisma";
 import { waehleAktivenStandort } from "@/lib/standortfilter";
 
 import { BestellungFormular } from "./bestellung-formular";
+import { BestellpositionFormular } from "./bestellposition-formular";
 
 export const dynamic = "force-dynamic";
 
@@ -20,19 +23,20 @@ export default async function BestellungenSeite({
     where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true },
   });
   const standort = waehleAktivenStandort(standorte, parameter.standortId);
-  const [tische, reservierungen, bestellungen] = standort ? await Promise.all([
+  const [tische, reservierungen, bestellungen, artikel] = standort ? await Promise.all([
     prisma.tisch.findMany({ where: { standortId: standort.id, aktiv: true }, orderBy: { nummer: "asc" }, select: { id: true, nummer: true } }),
     prisma.reservierung.findMany({ where: { standortId: standort.id }, orderBy: { beginn: "desc" }, select: { id: true, beginn: true, gast: { select: { name: true } } } }),
     ladeBestellungenFuerStandort(prisma, standort.id),
-  ]) : [[], [], []];
+    ladeGueltigesArtikelangebot(prisma, standort.id),
+  ]) : [[], [], [], []];
 
   return (
     <main>
       <Link className="zurueck" href="/">← Startseite</Link>
       <header className="seitenkopf">
-        <p className="kennung">BV-014</p>
+        <p className="kennung">BV-015</p>
         <h1>Bestellungen pro Tisch</h1>
-        <p>Leere Bestellungen standortbezogen eröffnen und ihre Zuordnung pflegen.</p>
+        <p>Offene Bestellungen pflegen und Positionen aus dem gültigen Standortangebot aufnehmen.</p>
       </header>
 
       <form className="karte uebersicht-filter" method="get">
@@ -69,6 +73,20 @@ export default async function BestellungenSeite({
               reservierungen={reservierungen}
               bestellung={bestellung}
             />
+            <div className="positionsbereich">
+              <h4>Positionen</h4>
+              {bestellung.positionen.length === 0 ? <p className="leerzustand">Noch keine Position aufgenommen.</p> : bestellung.positionen.map((position) => (
+                <div className="positionszeile" key={position.id}>
+                  <div className="positionspreis">
+                    <span>{position.menge} × {formatierePreis(position.einzelpreisCent)}</span>
+                    <span className="status aktiv">offen</span>
+                  </div>
+                  <BestellpositionFormular bestellungId={bestellung.id} artikel={artikel} position={position} />
+                </div>
+              ))}
+              <h4>Position hinzufügen</h4>
+              {artikel.length > 0 ? <BestellpositionFormular bestellungId={bestellung.id} artikel={artikel} /> : <p className="leerzustand">Für diesen Standort ist kein aktiver Artikel verfügbar.</p>}
+            </div>
           </article>
         ))}
       </section>

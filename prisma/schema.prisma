@@ -31,6 +31,7 @@ model Artikel {
   benoetigtGrill   Boolean           @default(false)
   aktiv            Boolean           @default(true)
   standortAngebote ArtikelStandort[]
+  bestellpositionen Bestellposition[]
 }
 
 model ArtikelStandort {
@@ -162,11 +163,27 @@ model Bestellung {
   tisch                       Tisch         @relation(fields: [tischId], references: [id], onDelete: Restrict)
   reservierung                Reservierung? @relation(fields: [reservierungId], references: [id], onDelete: Restrict)
   aufgenommenVonMitarbeiter   Mitarbeiter   @relation(fields: [aufgenommenVonMitarbeiterId], references: [id], onDelete: Restrict)
+  positionen                  Bestellposition[]
 
   @@index([standortId])
   @@index([tischId])
   @@index([reservierungId])
   @@index([aufgenommenVonMitarbeiterId])
+}
+
+model Bestellposition {
+  id                String     @id @default(cuid())
+  bestellungId      String
+  artikelId         String
+  menge             Int
+  einzelpreisCent   Int
+  sonderwunsch      String
+  status            String     @default("offen")
+  bestellung        Bestellung @relation(fields: [bestellungId], references: [id], onDelete: Restrict)
+  artikel           Artikel    @relation(fields: [artikelId], references: [id], onDelete: Restrict)
+
+  @@index([bestellungId])
+  @@index([artikelId])
 }
 
 model Belegung {

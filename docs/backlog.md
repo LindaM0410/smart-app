@@ -56,7 +56,7 @@ Ziel: Bestellungen und Rechnungen sollen weniger Fehler verursachen.
 | ID | Feature | Phase | Status | Akzeptanzkern |
 | --- | --- | ---: | --- | --- |
 | BV-014 | Bestellungen pro Tisch aufnehmen | 2 | done | Leere Bestellungen an einem aktiven Tisch mit aktivem, standortgleichem Mitarbeiter eröffnen und pflegen, optional einer standortgleichen Reservierung zuordnen und ausschließlich mit Status `offen` führen; Standortregeln werden server- und datenbankseitig atomar erzwungen (verifiziert am 18.07.2026) |
-| BV-015 | Bestellpositionen verwalten | 2 | hypo | Positionen mit Artikel, Menge, Preis-Snapshot, Sonderwunsch und Status erfassen |
+| BV-015 | Bestellpositionen verwalten | 2 | done | Zu offenen Bestellungen Positionen mit aktivem Artikel aus dem gültigen Standortangebot, positiver ganzzahliger Menge und optionalem Sonderwunsch anlegen und bearbeiten; Preis ausschließlich serverseitig als unveränderlichen Cent-Snapshot übernehmen und neue Positionen ausschließlich mit Status `offen` führen; Rollen- und Standortregeln werden server- und datenbankseitig erzwungen (mit 103 Tests, TypeScript-Prüfung und Produktions-Build verifiziert am 19.07.2026) |
 | BV-016 | Küchenansicht bereitstellen | 2 | hypo | Küche sieht relevante Bestellungen und kann Positionsstatus aktualisieren |
 | BV-017 | Rechnungen erzeugen | 2 | hypo | Rechnung aus Bestellung, Zahler, Zahlungsart und berechenbaren Positionen erzeugen |
 | BV-018 | Bella-Card-Rabatt anwenden | 2 | hypo | 15 % Rabatt nur fuer zahlenden Gast mit aktiver Bella-Card und Freigabe durch Inhaber/Manager anwenden |

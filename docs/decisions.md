@@ -459,3 +459,20 @@ Rolle und Mitarbeiteridentität werden ausschließlich aus der bei jeder Anfrage
 - Manager dürfen in diesem Slice ausdrücklich auch Mitarbeiterstammdaten pflegen.
 - Standortberechtigungen, Hauptstandort-Beschränkungen, Gruppenfreigaben, Rabatte, Stornos, Auditierung, Küche, Bestellpositionen, Rechnungen und Catering bleiben außerhalb von BV-013.
 - Rollenmatrix, Pfadschutz, Serveroperationsprüfung und ignorierte Clientbehauptungen sind automatisiert getestet; 98 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-19 — Offene Bestellposition mit serverseitigem Preis-Snapshot (BV-015)
+
+**Kontext:** BV-014 kann leere offene Bestellungen führen; Artikel, Centpreise und standortabhängige Angebote bestehen bereits. Für die operative Bestellaufnahme fehlen Positionen, ohne dabei Küchenstatus, Storno oder Abrechnung vorwegzunehmen.
+
+### Entscheidung
+
+Eine Bestellposition referenziert genau eine Bestellung und einen Artikel und speichert positive ganzzahlige Menge, optionalen Sonderwunsch, Status sowie den Einzelpreis als ganzzahligen Cent-Snapshot. Positionen können ausschließlich zu offenen Bestellungen angelegt und bearbeitet werden. Beim Anlegen wird nur ein aktiver Artikel akzeptiert, der dem aktiven Standort der Bestellung ausdrücklich angeboten wird. Der Einzelpreis wird innerhalb der serverseitigen Transaktion aus dem Artikel gelesen und niemals aus Formular- oder Clientdaten übernommen.
+
+Neue Positionen erhalten ausschließlich den Status `offen`. Beim Bearbeiten können nur Menge und Sonderwunsch geändert werden; Artikel, Bestellung, Preis-Snapshot und Status bleiben unverändert. Datenbanktrigger sichern dieselben Regeln gegen direkte Schreibzugriffe und verhindern einen Standortwechsel der Bestellung, wenn dadurch ihr vorhandenes Artikelangebot ungültig würde. Die bestehenden Seiten und Server Actions verwenden weiterhin die Fähigkeit `operativeAblaeufeNutzen`.
+
+### Konsequenzen
+
+- Bedienung, Manager und Inhaber können in der bestehenden Bestellansicht Positionen hinzufügen, sehen und bearbeiten.
+- Spätere Artikelpreisänderungen verändern vorhandene Preis-Snapshots nicht.
+- Küchenansicht, weitere Positionsstatus, Storno, Rechnung, Zahlung, Rabatt, Auditierung sowie Seed- und Beispieldaten werden nicht eingeführt.
+- Migration, vollständige Testsuite mit 103 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich verifiziert.

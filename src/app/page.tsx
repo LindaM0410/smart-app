@@ -72,7 +72,7 @@ export default async function Startseite({
         </Link>
         <Link className="funktionskarte" href="/bestellungen">
           <strong>Bestellungen pro Tisch</strong>
-          <span>Leere Bestellungen eröffnen und ihre Zuordnung pflegen</span>
+          <span>Offene Bestellungen und ihre Positionen aufnehmen</span>
         </Link>
         </> : null}
       </nav>

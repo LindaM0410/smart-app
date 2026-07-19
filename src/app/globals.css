@@ -143,6 +143,7 @@ h2 {
 .reservierung-formular,
 .walk-in-formular,
 .bestellung-formular,
+.bestellposition-formular,
 .artikel-formular {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -174,11 +175,44 @@ h2 {
 .reservierung-formular > label,
 .walk-in-formular > label,
 .bestellung-formular > label,
+.bestellposition-formular > label,
 .artikel-formular > label {
   display: grid;
   align-content: start;
   gap: 0.35rem;
   font-weight: 700;
+}
+
+.positionsbereich {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #dfd8d0;
+}
+
+.positionsbereich h4 {
+  margin: 0;
+}
+
+.positionszeile {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: #faf8f5;
+}
+
+.positionspreis {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.positionsartikel {
+  display: grid;
+  align-content: center;
 }
 
 .standort-formular > label:nth-of-type(2) {
