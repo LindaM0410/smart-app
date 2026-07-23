@@ -11,6 +11,7 @@ import {
   aktualisiereReservierung,
   erstelleReservierung,
   markiereReservierungAlsNoShow,
+  GruppenreservierungTischkombinationFehler,
   NoShowAusgangsstatusFehler,
   NoShowFristFehler,
   NoShowUngepruefterStatuswechselFehler,
@@ -56,6 +57,20 @@ async function erstelleTestdatenbank(t: TestContext) {
       "notiz" TEXT NOT NULL, "istStammgast" BOOLEAN NOT NULL DEFAULT false,
       "hatBellaCard" BOOLEAN NOT NULL DEFAULT false, "besuchsanzahl" INTEGER NOT NULL DEFAULT 0,
       "aktiv" BOOLEAN NOT NULL DEFAULT true
+    )
+  `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TABLE "TischKombination" (
+      "id" TEXT NOT NULL PRIMARY KEY, "standortId" TEXT NOT NULL, "schluessel" TEXT NOT NULL UNIQUE,
+      FOREIGN KEY ("standortId") REFERENCES "Standort" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    )
+  `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TABLE "TischKombinationTisch" (
+      "kombinationId" TEXT NOT NULL, "tischId" TEXT NOT NULL,
+      PRIMARY KEY ("kombinationId", "tischId"),
+      FOREIGN KEY ("kombinationId") REFERENCES "TischKombination" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+      FOREIGN KEY ("tischId") REFERENCES "Tisch" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
     )
   `);
   await datenbank.$executeRawUnsafe(`
@@ -146,7 +161,7 @@ async function erstelleTestdatenbank(t: TestContext) {
         nummer: "K-01",
         kapazitaet: 4,
         bereich: "innen",
-        kombinierbar: false,
+        kombinierbar: true,
         aktiv: true,
       },
       {
@@ -155,7 +170,7 @@ async function erstelleTestdatenbank(t: TestContext) {
         nummer: "K-02",
         kapazitaet: 2,
         bereich: "innen",
-        kombinierbar: false,
+        kombinierbar: true,
         aktiv: true,
       },
       {
@@ -184,6 +199,19 @@ const eingabe = normalisiereReservierung({
   tischIds: ["tisch-1"],
 });
 
+async function erstelleGueltigeKombination(datenbank: PrismaClient) {
+  await datenbank.tischKombination.create({
+    data: {
+      id: "kombination-1-2",
+      standortId: "standort-aktiv",
+      schluessel: "tisch-1|tisch-2",
+      tische: {
+        create: [{ tischId: "tisch-1" }, { tischId: "tisch-2" }],
+      },
+    },
+  });
+}
+
 test("legt eine Reservierung mit Tischen an, ersetzt und entfernt die Zuordnung", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
   const reservierung = await erstelleReservierung(datenbank, eingabe);
@@ -191,15 +219,15 @@ test("legt eine Reservierung mit Tischen an, ersetzt und entfernt die Zuordnung"
 
   const bearbeitet = await aktualisiereReservierung(datenbank, reservierung.id, {
     ...eingabe,
-    personenanzahl: 8,
-    istGruppe: true,
+    personenanzahl: 6,
+    istGruppe: false,
     status: "bestaetigt",
     tischIds: ["tisch-2"],
   });
 
   assert.equal(bearbeitet.ende.toISOString(), "2026-07-20T19:00:00.000Z");
-  assert.equal(bearbeitet.personenanzahl, 8);
-  assert.equal(bearbeitet.istGruppe, true);
+  assert.equal(bearbeitet.personenanzahl, 6);
+  assert.equal(bearbeitet.istGruppe, false);
   assert.equal(bearbeitet.status, "bestaetigt");
   assert.deepEqual(bearbeitet.tische.map(({ tischId }) => tischId), ["tisch-2"]);
 
@@ -209,6 +237,72 @@ test("legt eine Reservierung mit Tischen an, ersetzt und entfernt die Zuordnung"
   });
   assert.deepEqual(ohneTisch.tische, []);
   assert.equal(await datenbank.reservierung.count(), 1);
+});
+
+test("legt eine Gruppenreservierung nur mit der exakt konfigurierten Tischmenge an", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await erstelleGueltigeKombination(datenbank);
+
+  const reservierung = await erstelleReservierung(
+    datenbank,
+    normalisiereReservierung({
+      ...eingabe,
+      personenanzahl: 8,
+      tischIds: ["tisch-2", "tisch-1"],
+    }),
+  );
+
+  assert.equal(reservierung.istGruppe, true);
+  assert.deepEqual(
+    reservierung.tische.map(({ tischId }) => tischId).sort(),
+    ["tisch-1", "tisch-2"],
+  );
+});
+
+test("weist Gruppenreservierungen ohne exakte konfigurierte Tischkombination zurück", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await erstelleGueltigeKombination(datenbank);
+
+  for (const tischIds of [[], ["tisch-1"]] as string[][]) {
+    await assert.rejects(
+      erstelleReservierung(
+        datenbank,
+        normalisiereReservierung({
+          ...eingabe,
+          personenanzahl: 8,
+          tischIds,
+        }),
+      ),
+      GruppenreservierungTischkombinationFehler,
+    );
+  }
+
+  assert.equal(await datenbank.reservierung.count(), 0);
+});
+
+test("erzwingt die konfigurierte Tischkombination auch beim Wechsel zur Gruppenreservierung", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const reservierung = await erstelleReservierung(datenbank, eingabe);
+
+  await assert.rejects(
+    aktualisiereReservierung(
+      datenbank,
+      reservierung.id,
+      normalisiereReservierung({
+        ...eingabe,
+        personenanzahl: 8,
+        tischIds: ["tisch-1"],
+      }),
+    ),
+    GruppenreservierungTischkombinationFehler,
+  );
+
+  const unveraendert = await datenbank.reservierung.findUniqueOrThrow({
+    where: { id: reservierung.id },
+    include: { tische: true },
+  });
+  assert.equal(unveraendert.istGruppe, false);
+  assert.deepEqual(unveraendert.tische.map(({ tischId }) => tischId), ["tisch-1"]);
 });
 
 test("weist nicht vorhandene oder inaktive Referenzen zurück", async (t) => {

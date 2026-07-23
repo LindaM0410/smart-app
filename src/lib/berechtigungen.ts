@@ -1,6 +1,7 @@
 export const FAEHIGKEITEN = {
   stammdatenPflegen: "stammdatenPflegen",
   operativeAblaeufeNutzen: "operativeAblaeufeNutzen",
+  gruppenreservierungenPlanen: "gruppenreservierungenPlanen",
   kuechenstatusPflegen: "kuechenstatusPflegen",
   bestellpositionStornieren: "bestellpositionStornieren",
   rechnungErzeugen: "rechnungErzeugen",
@@ -11,8 +12,8 @@ export const FAEHIGKEITEN = {
 export type Faehigkeit = (typeof FAEHIGKEITEN)[keyof typeof FAEHIGKEITEN];
 
 const rollenFaehigkeiten: Record<string, readonly Faehigkeit[]> = {
-  inhaber: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen, FAEHIGKEITEN.bellaCardRabattAnwenden],
-  manager: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen, FAEHIGKEITEN.bellaCardRabattAnwenden],
+  inhaber: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.gruppenreservierungenPlanen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen, FAEHIGKEITEN.bellaCardRabattAnwenden],
+  manager: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.gruppenreservierungenPlanen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen, FAEHIGKEITEN.bellaCardRabattAnwenden],
   bedienung: [FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen],
   kueche: [FAEHIGKEITEN.kuechenstatusPflegen],
 };
@@ -34,6 +35,16 @@ export function pruefeFaehigkeit(
 ): asserts mitarbeiter is { rolle: string } {
   if (!mitarbeiter || !hatFaehigkeit(mitarbeiter, faehigkeit)) {
     throw new ZugriffVerweigertFehler();
+  }
+}
+
+export function pruefeGruppenreservierungPlanung(
+  mitarbeiter: { rolle: string } | null,
+  vorherIstGruppe: boolean,
+  nachherIstGruppe: boolean,
+) {
+  if (vorherIstGruppe || nachherIstGruppe) {
+    pruefeFaehigkeit(mitarbeiter, FAEHIGKEITEN.gruppenreservierungenPlanen);
   }
 }
 

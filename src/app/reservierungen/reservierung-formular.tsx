@@ -33,11 +33,15 @@ type ReservierungWerte = {
 
 export function ReservierungFormular({
   gaeste,
+  gruppenKombinationen,
+  darfGruppenPlanen,
   standorte,
   tische,
   reservierung,
 }: {
   gaeste: Auswahl[];
+  gruppenKombinationen: string[][];
+  darfGruppenPlanen: boolean;
   standorte: Auswahl[];
   tische: TischAuswahl[];
   reservierung?: ReservierungWerte;
@@ -47,6 +51,7 @@ export function ReservierungFormular({
   const kennung = reservierung?.id ?? "neu";
   const [standortId, setStandortId] = useState(reservierung?.standortId ?? "");
   const verfuegbareTische = tische.filter((tisch) => tisch.standortId === standortId);
+  const tischNummer = new Map(tische.map((tisch) => [tisch.id, tisch.nummer]));
   const waehlbareStatus = RESERVIERUNGSSTATUS.filter(
     (wert) => wert !== "noShow" || reservierung?.status === "noShow",
   );
@@ -102,6 +107,19 @@ export function ReservierungFormular({
           </div>
         )}
         {status.fehler.tischIds ? <span className="fehler">{status.fehler.tischIds}</span> : null}
+        {darfGruppenPlanen ? (
+          gruppenKombinationen.length > 0 ? (
+            <p className="sekundaer">
+              Für Gruppen zulässig: {gruppenKombinationen
+                .map((kombination) =>
+                  kombination.map((id) => `Tisch ${tischNummer.get(id) ?? id}`).join(" + ")
+                )
+                .join("; ")}
+            </p>
+          ) : (
+            <p className="sekundaer">Für diesen Standort ist noch keine Tischkombination konfiguriert.</p>
+          )
+        ) : null}
       </fieldset>
 
       <label>
@@ -118,7 +136,18 @@ export function ReservierungFormular({
 
       <label>
         Personenanzahl
-        <input defaultValue={reservierung?.personenanzahl ?? 2} min="1" name="personenanzahl" required step="1" type="number" />
+        <input
+          defaultValue={reservierung?.personenanzahl ?? 2}
+          max={darfGruppenPlanen ? undefined : 7}
+          min="1"
+          name="personenanzahl"
+          required
+          step="1"
+          type="number"
+        />
+        {!darfGruppenPlanen ? (
+          <span className="sekundaer">Gruppen ab 8 Personen planen nur Inhaber oder Manager.</span>
+        ) : null}
         {status.fehler.personenanzahl ? <span className="fehler">{status.fehler.personenanzahl}</span> : null}
       </label>
 

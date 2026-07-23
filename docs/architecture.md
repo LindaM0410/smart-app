@@ -69,6 +69,9 @@ Die Ergänzungen präzisieren die Spezifikation, ändern aber nicht deren Scope.
 - Für keinen Tisch dürfen sich aktive Reservierungsintervalle überschneiden.
 - `storniert` und `noShow` blockieren nach wirksamer Statusänderung kein zukünftiges Zeitfenster mehr.
 - Ein Statuswechsel muss als atomare Fachoperation erfolgen.
+- Reservierungen ab acht Personen werden serverseitig als Gruppe abgeleitet. Ihre
+  vollständige Tischmenge muss exakt einer konfigurierten Tischkombination am
+  Reservierungsstandort entsprechen.
 
 Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implementiert werden. Datenbank-Constraint, Sperrstrategie oder serialisierbare Transaktion müssen konkurrierende Buchungen sicher auflösen.
 
@@ -117,6 +120,8 @@ BV-019 ergänzt die Fähigkeit `bestellpositionStornieren` ausschließlich für 
 BV-034 ergänzt die Fähigkeit `rechnungBezahlen` für Inhaber, Manager und Bedienung. Küche bleibt ausgeschlossen. Die Server Action übernimmt ausschließlich Rechnungs-ID und Zahlungsart; Status und Zeitpunkt werden serverseitig gesetzt. Ein Datenbank-Trigger begrenzt Änderungen zusätzlich auf `offen` → `bezahlt`, erlaubt nur `bar` oder `karte` und schützt den Betragssnapshot sowie die übrigen Rechnungsdaten.
 
 BV-018 ergänzt die Fähigkeit `bellaCardRabattAnwenden` ausschließlich für Inhaber und Manager. Sie schützt Zahlerauswahl und Rabattfreigabe in der bestehenden Bestellansicht. Bedienung und Küche besitzen diese Fähigkeit nicht. Die Datenbank prüft zusätzlich offene Rechnung, aktiven Zahler, aktive Bella-Card, berechtigten Freigabeakteur und die serverseitig abgeleiteten Centbeträge.
+
+BV-012 ergänzt die Fähigkeit `gruppenreservierungenPlanen` ausschließlich für Inhaber und Manager. Sie wird bei Anlage einer Gruppenreservierung, beim Wechsel einer normalen Reservierung zur Gruppe und bei jeder Bearbeitung einer bestehenden Gruppenreservierung serverseitig geprüft. Die maßgebliche Gruppenentscheidung wird aus der Personenanzahl abgeleitet; Clientangaben können sie nicht überschreiben. Bedienung darf normale Reservierungen unter acht Personen weiterhin verwalten, Küche bleibt vom Reservierungsbereich ausgeschlossen.
 
 ## 8. Qualitäts- und Teststrategie
 

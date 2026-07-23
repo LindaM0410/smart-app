@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 
 import type { NormalisierteReservierungEingabe } from "./reservierungen";
+import { tischKombinationsSchluessel } from "./tischkombinationen.ts";
 
 export class ReservierungReferenzfehler extends Error {
   readonly feld: "gastId" | "standortId" | "tischIds";
@@ -29,6 +30,14 @@ export class ReservierungKonfliktfehler extends Error {
     this.tischNummer = tischNummer;
     this.beginn = beginn;
     this.ende = ende;
+  }
+}
+
+export class GruppenreservierungTischkombinationFehler extends Error {
+  constructor() {
+    super(
+      "Für eine Gruppenreservierung muss genau eine zulässige Tischkombination dieses Standorts gewählt werden.",
+    );
   }
 }
 
@@ -88,6 +97,25 @@ async function pruefeAktiveReferenzen(
   if (!standort) throw new ReservierungReferenzfehler("standortId");
   if (tische.length !== eingabe.tischIds.length) {
     throw new ReservierungReferenzfehler("tischIds");
+  }
+}
+
+async function pruefeGruppenTischkombination(
+  datenbank: Datenbank,
+  eingabe: NormalisierteReservierungEingabe,
+) {
+  if (!eingabe.istGruppe) return;
+
+  const kombination = await datenbank.tischKombination.findFirst({
+    where: {
+      standortId: eingabe.standortId,
+      schluessel: tischKombinationsSchluessel(eingabe.tischIds),
+    },
+    select: { id: true },
+  });
+
+  if (!kombination) {
+    throw new GruppenreservierungTischkombinationFehler();
   }
 }
 
@@ -164,6 +192,7 @@ export async function erstelleReservierung(
   try {
     return await datenbank.$transaction(async (transaktion) => {
       await pruefeAktiveReferenzen(transaktion, eingabe);
+      await pruefeGruppenTischkombination(transaktion, eingabe);
       await wirfBeiKonflikt(transaktion, eingabe);
       return transaktion.reservierung.create({
         data: reservierungsdaten(eingabe),
@@ -194,6 +223,7 @@ export async function aktualisiereReservierung(
         throw new NoShowUngepruefterStatuswechselFehler();
       }
       await pruefeAktiveReferenzen(transaktion, eingabe);
+      await pruefeGruppenTischkombination(transaktion, eingabe);
       await wirfBeiKonflikt(transaktion, eingabe, id);
       const { tischIds, ...daten } = eingabe;
       return transaktion.reservierung.update({

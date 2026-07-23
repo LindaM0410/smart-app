@@ -7,6 +7,7 @@ import {
   faehigkeitFuerPfad,
   hatFaehigkeit,
   pruefeFaehigkeit,
+  pruefeGruppenreservierungPlanung,
   sitzungsAkteurId,
 } from "./berechtigungen.ts";
 
@@ -14,6 +15,7 @@ test("Inhaber und Manager dürfen Stammdaten und operative Abläufe nutzen", () 
   for (const rolle of ["inhaber", "manager"]) {
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.stammdatenPflegen), true);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.operativeAblaeufeNutzen), true);
+    assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.gruppenreservierungenPlanen), true);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.kuechenstatusPflegen), true);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.bestellpositionStornieren), true);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.rechnungErzeugen), true);
@@ -30,6 +32,7 @@ test("manipulierte Mitarbeiterwerte ersetzen niemals den Sitzungsakteur", () => 
 test("Bedienung darf nur operative Abläufe und nicht die Küchenansicht nutzen", () => {
   assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.stammdatenPflegen), false);
   assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.operativeAblaeufeNutzen), true);
+  assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.gruppenreservierungenPlanen), false);
   assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.kuechenstatusPflegen), false);
   assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.bestellpositionStornieren), false);
   assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.rechnungErzeugen), true);
@@ -40,6 +43,7 @@ test("Bedienung darf nur operative Abläufe und nicht die Küchenansicht nutzen"
 test("Küche erhält ausschließlich die Küchenfähigkeit", () => {
   assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.stammdatenPflegen), false);
   assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.operativeAblaeufeNutzen), false);
+  assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.gruppenreservierungenPlanen), false);
   assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.kuechenstatusPflegen), true);
   assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.bestellpositionStornieren), false);
   assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.rechnungErzeugen), false);
@@ -51,6 +55,7 @@ test("unbekannte Rollen erhalten standardmäßig keine Fähigkeit", () => {
   for (const rolle of ["admin", "", "INHABER"]) {
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.stammdatenPflegen), false);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.operativeAblaeufeNutzen), false);
+    assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.gruppenreservierungenPlanen), false);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.kuechenstatusPflegen), false);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.bestellpositionStornieren), false);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.rechnungErzeugen), false);
@@ -86,6 +91,10 @@ test("dieselbe Prüfung lehnt gesperrte Serveroperationen ab", () => {
     ZugriffVerweigertFehler,
   );
   assert.throws(
+    () => pruefeFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.gruppenreservierungenPlanen),
+    ZugriffVerweigertFehler,
+  );
+  assert.throws(
     () => pruefeFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.bestellpositionStornieren),
     ZugriffVerweigertFehler,
   );
@@ -106,4 +115,29 @@ test("dieselbe Prüfung lehnt gesperrte Serveroperationen ab", () => {
     ZugriffVerweigertFehler,
   );
   assert.throws(() => pruefeFaehigkeit(null, FAEHIGKEITEN.stammdatenPflegen), ZugriffVerweigertFehler);
+});
+
+test("nur Inhaber und Manager dürfen Gruppenreservierungen anlegen oder ändern", () => {
+  for (const rolle of ["inhaber", "manager"]) {
+    assert.doesNotThrow(() =>
+      pruefeGruppenreservierungPlanung({ rolle }, false, true),
+    );
+    assert.doesNotThrow(() =>
+      pruefeGruppenreservierungPlanung({ rolle }, true, false),
+    );
+  }
+
+  assert.doesNotThrow(() =>
+    pruefeGruppenreservierungPlanung({ rolle: "bedienung" }, false, false),
+  );
+  for (const rolle of ["bedienung", "kueche"]) {
+    assert.throws(
+      () => pruefeGruppenreservierungPlanung({ rolle }, false, true),
+      ZugriffVerweigertFehler,
+    );
+    assert.throws(
+      () => pruefeGruppenreservierungPlanung({ rolle }, true, false),
+      ZugriffVerweigertFehler,
+    );
+  }
 });

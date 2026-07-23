@@ -622,3 +622,21 @@ Die Startseite zeigt zunächst nur die großen Karten der für den angemeldeten 
 - Vorhandene Funktionsrouten, Rollen, Berechtigungen und serverseitige Zugriffskontrollen bleiben unverändert.
 - Die UX-Änderung führt keine neue Fachfunktion und keine neue Feature-ID ein.
 - Bereichsauswahl, unerlaubte und unbekannte Parameter sind automatisiert getestet; die vollständige Testsuite mit 138 Tests, TypeScript-Prüfung, Produktions-Build und `git diff --check` wurde erfolgreich ausgeführt.
+
+## 2026-07-23 — Rollen- und kombinationsgebundene Gruppenplanung (BV-012)
+
+**Kontext:** Reservierungen werden bereits ab acht Personen serverseitig als Gruppe erkannt. Konfigurierbare Tischkombinationen, Standortbindung, Doppelbuchungsschutz und Mitarbeitersitzungen bestehen ebenfalls, waren aber noch nicht zu einem geschützten Gruppenplanungsablauf verbunden.
+
+### Entscheidung
+
+Die Gruppenentscheidung bleibt ausschließlich aus der Personenanzahl abgeleitet; eine manuelle Gruppenangabe wird nicht eingeführt. Anlage und Bearbeitung einer Gruppenreservierung benötigen die eigene Fähigkeit `gruppenreservierungenPlanen`, die nur Inhaber und Manager besitzen. Die Prüfung greift auch beim Wechsel einer normalen Reservierung zur Gruppe sowie bei der Bearbeitung oder Rückstufung einer bereits bestehenden Gruppenreservierung.
+
+Eine Gruppenreservierung kann nur gespeichert werden, wenn ihre vollständige Tischmenge unabhängig von der Auswahlreihenfolge exakt dem Schlüssel einer konfigurierten Tischkombination am Reservierungsstandort entspricht. Die Prüfung erfolgt zusammen mit den bestehenden Referenz-, Standort- und Konfliktprüfungen in der Reservierungstransaktion. Kombinationen bleiben über die bereits vorhandenen BV-003-Regeln gültig; es wird kein zusätzlicher Aktivstatus eingeführt.
+
+### Konsequenzen
+
+- Bedienung kann normale Reservierungen unter acht Personen unverändert verwalten, aber keine Gruppe anlegen oder durch Bearbeitung erzeugen.
+- Küche bleibt über die bestehende Reservierungsberechtigung ausgeschlossen.
+- Die Oberfläche zeigt Inhaber und Manager die konfigurierten Kombinationen; Bedienung erhält keine Bearbeitungsmaske für bestehende Gruppen.
+- Gruppenmenüs, automatische Kombinationsauswahl, neue Kombinationen, allgemeine Statusfolgen und Auditierung werden nicht eingeführt.
+- Rollenmatrix, serverseitige Gruppenableitung, exakte Kombinationsmenge, Bearbeitungsschutz, Standortbindung und bestehender Doppelbuchungsschutz sind mit 142 Tests, TypeScript-Prüfung und Produktions-Build verifiziert.

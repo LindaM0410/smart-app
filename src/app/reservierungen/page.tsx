@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { FAEHIGKEITEN, verlangeFaehigkeit } from "@/lib/autorisierung";
+import { FAEHIGKEITEN, hatFaehigkeit, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
 import { ladeReservierungenFuerStandort, waehleAktivenStandort } from "@/lib/standortfilter";
 
@@ -19,21 +19,30 @@ export default async function ReservierungenSeite({
 }: {
   searchParams: Promise<{ erfolg?: string; fehler?: string; standortId?: string }>;
 }) {
-  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
+  const mitarbeiter = await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
+  const darfGruppenPlanen = hatFaehigkeit(
+    mitarbeiter,
+    FAEHIGKEITEN.gruppenreservierungenPlanen,
+  );
   const parameter = await searchParams;
   const [gaeste, standorte] = await Promise.all([
     prisma.gast.findMany({ where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
     prisma.standort.findMany({ where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
   const standort = waehleAktivenStandort(standorte, parameter.standortId);
-  const [tische, reservierungen] = standort ? await Promise.all([
+  const [tische, reservierungen, gruppenKombinationen] = standort ? await Promise.all([
     prisma.tisch.findMany({
       where: { standortId: standort.id, aktiv: true },
       orderBy: { nummer: "asc" },
       select: { id: true, nummer: true, standortId: true },
     }),
     ladeReservierungenFuerStandort(prisma, standort.id),
-  ]) : [[], []];
+    prisma.tischKombination.findMany({
+      where: { standortId: standort.id },
+      select: { tische: { select: { tischId: true } } },
+      orderBy: { schluessel: "asc" },
+    }),
+  ]) : [[], [], []];
 
   return (
     <main>
@@ -60,7 +69,17 @@ export default async function ReservierungenSeite({
 
       <section className="karte">
         <h2>Neue Reservierung anlegen</h2>
-        {standort ? <ReservierungFormular gaeste={gaeste} standorte={[standort]} tische={tische} /> : <p className="leerzustand">Kein aktiver Standort ausgewählt.</p>}
+        {standort ? (
+          <ReservierungFormular
+            darfGruppenPlanen={darfGruppenPlanen}
+            gaeste={gaeste}
+            gruppenKombinationen={gruppenKombinationen.map(({ tische: kombinationsTische }) =>
+              kombinationsTische.map(({ tischId }) => tischId)
+            )}
+            standorte={[standort]}
+            tische={tische}
+          />
+        ) : <p className="leerzustand">Kein aktiver Standort ausgewählt.</p>}
       </section>
 
       <section className="standortliste">
@@ -81,17 +100,27 @@ export default async function ReservierungenSeite({
                 </div>
                 <span className="status inaktiv">{reservierung.status}</span>
               </div>
-              <ReservierungFormular
-                gaeste={gaeste}
-                standorte={[standort!]}
-                tische={tische}
-                reservierung={{
-                  ...reservierung,
-                  beginn: alsLokalesFormularDatum(reservierung.beginn),
-                  ende: alsLokalesFormularDatum(reservierung.ende),
-                  tischIds: reservierung.tische.map(({ tischId }) => tischId),
-                }}
-              />
+              {reservierung.istGruppe && !darfGruppenPlanen ? (
+                <p className="sekundaer">
+                  Gruppenreservierungen dürfen nur durch Inhaber oder Manager geplant werden.
+                </p>
+              ) : (
+                <ReservierungFormular
+                  darfGruppenPlanen={darfGruppenPlanen}
+                  gaeste={gaeste}
+                  gruppenKombinationen={gruppenKombinationen.map(({ tische: kombinationsTische }) =>
+                    kombinationsTische.map(({ tischId }) => tischId)
+                  )}
+                  standorte={[standort!]}
+                  tische={tische}
+                  reservierung={{
+                    ...reservierung,
+                    beginn: alsLokalesFormularDatum(reservierung.beginn),
+                    ende: alsLokalesFormularDatum(reservierung.ende),
+                    tischIds: reservierung.tische.map(({ tischId }) => tischId),
+                  }}
+                />
+              )}
               {reservierung.status === "bestaetigt" ? (
                 <form action={reservierungAlsNoShowMarkieren}>
                   <input name="id" type="hidden" value={reservierung.id} />

@@ -4,10 +4,16 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { FAEHIGKEITEN, sitzungsAkteurId, verlangeFaehigkeit } from "@/lib/autorisierung";
+import {
+  FAEHIGKEITEN,
+  pruefeGruppenreservierungPlanung,
+  sitzungsAkteurId,
+  verlangeFaehigkeit,
+} from "@/lib/autorisierung";
 import {
   aktualisiereReservierung,
   erstelleReservierung,
+  GruppenreservierungTischkombinationFehler,
   markiereReservierungAlsNoShow,
   NoShowAusgangsstatusFehler,
   NoShowFristFehler,
@@ -60,6 +66,12 @@ function persistenzfehler(error: unknown): ReservierungFormularStatus | undefine
       meldung: "Die Reservierung überschneidet sich mit einer bestehenden Tischbelegung.",
     };
   }
+  if (error instanceof GruppenreservierungTischkombinationFehler) {
+    return {
+      fehler: { tischIds: error.message },
+      meldung: "Bitte eine konfigurierte Tischkombination vollständig auswählen.",
+    };
+  }
 
   if (error instanceof ReservierungReferenzfehler) {
     const istGast = error.feld === "gastId";
@@ -98,8 +110,11 @@ export async function reservierungAnlegen(
     return { fehler, meldung: "Bitte die markierten Angaben prüfen." };
   }
 
+  const normalisiert = normalisiereReservierung(eingabe);
+  pruefeGruppenreservierungPlanung(mitarbeiter, false, normalisiert.istGruppe);
+
   try {
-    await erstelleReservierung(prisma, normalisiereReservierung(eingabe));
+    await erstelleReservierung(prisma, normalisiert);
   } catch (error) {
     const status = persistenzfehler(error);
     if (status) return status;
@@ -126,8 +141,22 @@ export async function reservierungBearbeiten(
     return { fehler: {}, meldung: "Die Reservierung konnte nicht gefunden werden." };
   }
 
+  const normalisiert = normalisiereReservierung(eingabe);
+  const vorhanden = await prisma.reservierung.findUnique({
+    where: { id },
+    select: { istGruppe: true },
+  });
+  if (!vorhanden) {
+    return { fehler: {}, meldung: "Die Reservierung konnte nicht gefunden werden." };
+  }
+  pruefeGruppenreservierungPlanung(
+    mitarbeiter,
+    vorhanden.istGruppe,
+    normalisiert.istGruppe,
+  );
+
   try {
-    await aktualisiereReservierung(prisma, id, normalisiereReservierung(eingabe));
+    await aktualisiereReservierung(prisma, id, normalisiert);
   } catch (error) {
     const status = persistenzfehler(error);
     if (status) return status;
