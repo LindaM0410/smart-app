@@ -14,9 +14,11 @@ import {
   GruppenreservierungTischkombinationFehler,
   NoShowAusgangsstatusFehler,
   NoShowFristFehler,
-  NoShowUngepruefterStatuswechselFehler,
   ReservierungKonfliktfehler,
   ReservierungReferenzfehler,
+  ReservierungsstatusManipulationFehler,
+  ReservierungsstatusWechselFehler,
+  wechsleReservierungsstatus,
 } from "./reservierung-persistenz.ts";
 import { normalisiereReservierung } from "./reservierungen.ts";
 
@@ -129,6 +131,23 @@ async function erstelleTestdatenbank(t: TestContext) {
         AND vorhanden."ende" > NEW."beginn"
     ) BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_DOPPELBUCHUNG'); END
   `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TRIGGER "Reservierung_status_gueltig_insert"
+    BEFORE INSERT ON "Reservierung"
+    WHEN NEW."status" NOT IN ('angefragt', 'bestaetigt', 'storniert', 'noShow', 'abgeschlossen')
+    BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_STATUS_UNGUELTIG'); END
+  `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TRIGGER "Reservierung_statusfolge_update"
+    BEFORE UPDATE OF "status" ON "Reservierung"
+    WHEN NEW."status" <> OLD."status"
+      AND NOT (
+        (OLD."status" = 'angefragt' AND NEW."status" IN ('bestaetigt', 'storniert'))
+        OR
+        (OLD."status" = 'bestaetigt' AND NEW."status" IN ('storniert', 'noShow', 'abgeschlossen'))
+      )
+    BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_STATUSWECHSEL_UNGUELTIG'); END
+  `);
 
   await datenbank.standort.create({
     data: {
@@ -221,14 +240,13 @@ test("legt eine Reservierung mit Tischen an, ersetzt und entfernt die Zuordnung"
     ...eingabe,
     personenanzahl: 6,
     istGruppe: false,
-    status: "bestaetigt",
     tischIds: ["tisch-2"],
   });
 
   assert.equal(bearbeitet.ende.toISOString(), "2026-07-20T19:00:00.000Z");
   assert.equal(bearbeitet.personenanzahl, 6);
   assert.equal(bearbeitet.istGruppe, false);
-  assert.equal(bearbeitet.status, "bestaetigt");
+  assert.equal(bearbeitet.status, "angefragt");
   assert.deepEqual(bearbeitet.tische.map(({ tischId }) => tischId), ["tisch-2"]);
 
   const ohneTisch = await aktualisiereReservierung(datenbank, reservierung.id, {
@@ -378,36 +396,25 @@ test("verhindert überlappende aktive Reservierungen für denselben Tisch", asyn
   assert.equal(await datenbank.reservierung.count(), 1);
 });
 
-test("behandelt Zeitfenster halb-offen und weitere nicht blockierende Status korrekt", async (t) => {
+test("behandelt Zeitfenster halb-offen und stornierte Reservierungen nicht blockierend", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
-  await erstelleReservierung(datenbank, eingabe);
+  const storniert = await erstelleReservierung(datenbank, eingabe);
+  await wechsleReservierungsstatus(datenbank, storniert.id, "storniert");
 
   await erstelleReservierung(datenbank, {
     ...eingabe,
-    beginn: new Date("2026-07-20T19:00:00.000Z"),
-    ende: new Date("2026-07-20T21:00:00.000Z"),
+    beginn: new Date("2026-07-20T17:30:00.000Z"),
+    ende: new Date("2026-07-20T18:30:00.000Z"),
   });
 
-  for (const status of ["storniert", "abgeschlossen"] as const) {
-    await erstelleReservierung(datenbank, {
-      ...eingabe,
-      status,
-      beginn: new Date("2026-07-20T17:30:00.000Z"),
-      ende: new Date("2026-07-20T18:30:00.000Z"),
-    });
-  }
-
-  assert.equal(await datenbank.reservierung.count(), 4);
+  assert.equal(await datenbank.reservierung.count(), 2);
 });
 
 test("prüft bei mehreren Tischen jeden Tisch und ignoriert sich beim Bearbeiten selbst", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
   const vorhanden = await erstelleReservierung(datenbank, eingabe);
 
-  await aktualisiereReservierung(datenbank, vorhanden.id, {
-    ...eingabe,
-    status: "bestaetigt",
-  });
+  await wechsleReservierungsstatus(datenbank, vorhanden.id, "bestaetigt");
 
   await assert.rejects(
     erstelleReservierung(datenbank, {
@@ -417,6 +424,69 @@ test("prüft bei mehreren Tischen jeden Tisch und ignoriert sich beim Bearbeiten
     ReservierungKonfliktfehler,
   );
   assert.equal(await datenbank.reservierung.count(), 1);
+});
+
+test("führt nur erlaubte Statuswechsel aus und schützt Endstatus", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const reservierung = await erstelleReservierung(datenbank, eingabe);
+
+  await assert.rejects(
+    wechsleReservierungsstatus(datenbank, reservierung.id, "abgeschlossen"),
+    ReservierungsstatusWechselFehler,
+  );
+  await wechsleReservierungsstatus(datenbank, reservierung.id, "bestaetigt");
+  await wechsleReservierungsstatus(datenbank, reservierung.id, "abgeschlossen");
+  await assert.rejects(
+    wechsleReservierungsstatus(datenbank, reservierung.id, "storniert"),
+    ReservierungsstatusWechselFehler,
+  );
+
+  assert.equal(
+    (await datenbank.reservierung.findUniqueOrThrow({ where: { id: reservierung.id } })).status,
+    "abgeschlossen",
+  );
+});
+
+test("verhindert Statusänderungen über Anlage, Bearbeitung und direkte Datenbankzugriffe", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await assert.rejects(
+    erstelleReservierung(datenbank, { ...eingabe, status: "bestaetigt" }),
+    ReservierungsstatusManipulationFehler,
+  );
+
+  const reservierung = await erstelleReservierung(datenbank, eingabe);
+  await assert.rejects(
+    aktualisiereReservierung(datenbank, reservierung.id, {
+      ...eingabe,
+      status: "storniert",
+    }),
+    ReservierungsstatusManipulationFehler,
+  );
+  await assert.rejects(
+    datenbank.reservierung.update({
+      where: { id: reservierung.id },
+      data: { status: "abgeschlossen" },
+    }),
+  );
+  await assert.rejects(
+    datenbank.reservierung.create({
+      data: {
+        gastId: eingabe.gastId,
+        standortId: eingabe.standortId,
+        beginn: eingabe.beginn,
+        ende: eingabe.ende,
+        personenanzahl: eingabe.personenanzahl,
+        status: "manipuliert",
+        notiz: eingabe.notiz,
+        istGruppe: false,
+        erstelltVonMitarbeiterId: eingabe.erstelltVonMitarbeiterId,
+      },
+    }),
+  );
+  assert.equal(
+    (await datenbank.reservierung.findUniqueOrThrow({ where: { id: reservierung.id } })).status,
+    "angefragt",
+  );
 });
 
 test("lässt bei zwei parallelen Doppelbuchungen genau eine erfolgreich speichern", async (t) => {
@@ -443,10 +513,8 @@ test("lässt bei zwei parallelen Doppelbuchungen genau eine erfolgreich speicher
 
 test("markiert eine bestätigte Reservierung ab exakt 15 Minuten als No-Show", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
-  const reservierung = await erstelleReservierung(datenbank, {
-    ...eingabe,
-    status: "bestaetigt",
-  });
+  const reservierung = await erstelleReservierung(datenbank, eingabe);
+  await wechsleReservierungsstatus(datenbank, reservierung.id, "bestaetigt");
 
   const aktualisiert = await markiereReservierungAlsNoShow(
     datenbank,
@@ -459,10 +527,8 @@ test("markiert eine bestätigte Reservierung ab exakt 15 Minuten als No-Show", a
 
 test("weist die No-Show-Markierung vor Ablauf der 15-Minuten-Frist zurück", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
-  const reservierung = await erstelleReservierung(datenbank, {
-    ...eingabe,
-    status: "bestaetigt",
-  });
+  const reservierung = await erstelleReservierung(datenbank, eingabe);
+  await wechsleReservierungsstatus(datenbank, reservierung.id, "bestaetigt");
 
   await assert.rejects(
     markiereReservierungAlsNoShow(
@@ -494,20 +560,18 @@ test("weist andere Ausgangsstatus und den ungeprüften Bearbeitungsweg zurück",
   );
   await assert.rejects(
     aktualisiereReservierung(datenbank, angefragt.id, { ...eingabe, status: "noShow" }),
-    NoShowUngepruefterStatuswechselFehler,
+    ReservierungsstatusManipulationFehler,
   );
   await assert.rejects(
     erstelleReservierung(datenbank, { ...eingabe, status: "noShow" }),
-    NoShowUngepruefterStatuswechselFehler,
+    ReservierungsstatusManipulationFehler,
   );
 });
 
 test("gibt nach der No-Show-Markierung die Planung frei und lässt reale Belegung offen", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
-  const reservierung = await erstelleReservierung(datenbank, {
-    ...eingabe,
-    status: "bestaetigt",
-  });
+  const reservierung = await erstelleReservierung(datenbank, eingabe);
+  await wechsleReservierungsstatus(datenbank, reservierung.id, "bestaetigt");
   await datenbank.belegung.create({
     data: {
       id: "belegung-offen",

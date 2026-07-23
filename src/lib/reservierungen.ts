@@ -8,6 +8,35 @@ export const RESERVIERUNGSSTATUS = [
 
 export type Reservierungsstatus = (typeof RESERVIERUNGSSTATUS)[number];
 
+export const RESERVIERUNGSSTATUS_WECHSEL: Readonly<
+  Record<Reservierungsstatus, readonly Reservierungsstatus[]>
+> = {
+  angefragt: ["bestaetigt", "storniert"],
+  bestaetigt: ["storniert", "noShow", "abgeschlossen"],
+  storniert: [],
+  noShow: [],
+  abgeschlossen: [],
+};
+
+export function erlaubteReservierungsstatusWechsel(
+  status: Reservierungsstatus,
+): readonly Reservierungsstatus[] {
+  return RESERVIERUNGSSTATUS_WECHSEL[status];
+}
+
+export function istReservierungsstatus(
+  status: string,
+): status is Reservierungsstatus {
+  return RESERVIERUNGSSTATUS.includes(status as Reservierungsstatus);
+}
+
+export function istReservierungsstatusWechselErlaubt(
+  ausgangsstatus: Reservierungsstatus,
+  zielstatus: Reservierungsstatus,
+) {
+  return erlaubteReservierungsstatusWechsel(ausgangsstatus).includes(zielstatus);
+}
+
 export type ReservierungEingabe = {
   gastId: string;
   standortId: string;
@@ -79,7 +108,7 @@ export function validiereReservierung(
   if (!Number.isInteger(eingabe.personenanzahl) || eingabe.personenanzahl <= 0) {
     fehler.personenanzahl = "Die Personenanzahl muss eine positive ganze Zahl sein.";
   }
-  if (!RESERVIERUNGSSTATUS.includes(eingabe.status as Reservierungsstatus)) {
+  if (!istReservierungsstatus(eingabe.status)) {
     fehler.status = "Bitte einen gültigen Reservierungsstatus wählen.";
   }
   if (eingabe.erstelltVonMitarbeiterId.trim().length === 0) {

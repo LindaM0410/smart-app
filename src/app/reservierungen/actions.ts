@@ -21,6 +21,10 @@ import {
   NoShowUngepruefterStatuswechselFehler,
   ReservierungKonfliktfehler,
   ReservierungReferenzfehler,
+  ReservierungsstatusManipulationFehler,
+  ReservierungsstatusNichtGefundenFehler,
+  ReservierungsstatusWechselFehler,
+  wechsleReservierungsstatus,
 } from "@/lib/reservierung-persistenz";
 import {
   hatReservierungValidierungsfehler,
@@ -57,7 +61,10 @@ function leseEingabe(formular: FormData, mitarbeiterId: string): ReservierungEin
 }
 
 function persistenzfehler(error: unknown): ReservierungFormularStatus | undefined {
-  if (error instanceof NoShowUngepruefterStatuswechselFehler) {
+  if (
+    error instanceof NoShowUngepruefterStatuswechselFehler ||
+    error instanceof ReservierungsstatusManipulationFehler
+  ) {
     return { fehler: { status: error.message }, meldung: error.message };
   }
   if (error instanceof ReservierungKonfliktfehler) {
@@ -173,6 +180,36 @@ function noShowZiel(meldung: string, standortId: string, erfolgreich = false) {
     standortId,
   });
   return `/reservierungen?${parameter}`;
+}
+
+export async function reservierungsstatusWechseln(formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
+  const id = String(formular.get("id") ?? "").trim();
+  const zielstatus = String(formular.get("zielstatus") ?? "").trim();
+  const standortId = String(formular.get("standortId") ?? "").trim();
+  let weiterleitung: string;
+
+  if (!id) {
+    weiterleitung = noShowZiel("Die Reservierung konnte nicht gefunden werden.", standortId);
+  } else {
+    try {
+      await wechsleReservierungsstatus(prisma, id, zielstatus);
+      revalidatePath("/reservierungen");
+      weiterleitung = noShowZiel("Der Reservierungsstatus wurde aktualisiert.", standortId, true);
+    } catch (fehler) {
+      if (
+        fehler instanceof ReservierungsstatusNichtGefundenFehler ||
+        fehler instanceof ReservierungsstatusWechselFehler ||
+        fehler instanceof ReservierungKonfliktfehler
+      ) {
+        weiterleitung = noShowZiel(fehler.message, standortId);
+      } else {
+        throw fehler;
+      }
+    }
+  }
+
+  redirect(weiterleitung);
 }
 
 export async function reservierungAlsNoShowMarkieren(formular: FormData) {

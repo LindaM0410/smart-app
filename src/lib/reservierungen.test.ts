@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  erlaubteReservierungsstatusWechsel,
   hatReservierungValidierungsfehler,
+  istReservierungsstatusWechselErlaubt,
   normalisiereReservierung,
   validiereReservierung,
   type ReservierungEingabe,
@@ -80,4 +82,21 @@ test("weist doppelte Tischzuordnungen zurück", () => {
   });
 
   assert.equal(fehler.tischIds, "Jeder Tisch darf nur einmal zugeordnet werden.");
+});
+
+test("definiert die erlaubte Reservierungsstatusfolge eindeutig", () => {
+  assert.deepEqual(erlaubteReservierungsstatusWechsel("angefragt"), [
+    "bestaetigt",
+    "storniert",
+  ]);
+  assert.deepEqual(erlaubteReservierungsstatusWechsel("bestaetigt"), [
+    "storniert",
+    "noShow",
+    "abgeschlossen",
+  ]);
+  assert.equal(istReservierungsstatusWechselErlaubt("angefragt", "abgeschlossen"), false);
+
+  for (const endstatus of ["storniert", "noShow", "abgeschlossen"] as const) {
+    assert.deepEqual(erlaubteReservierungsstatusWechsel(endstatus), []);
+  }
 });

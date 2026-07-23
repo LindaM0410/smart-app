@@ -2,10 +2,18 @@ import Link from "next/link";
 
 import { FAEHIGKEITEN, hatFaehigkeit, verlangeFaehigkeit } from "@/lib/autorisierung";
 import { prisma } from "@/lib/prisma";
+import {
+  erlaubteReservierungsstatusWechsel,
+  istReservierungsstatus,
+  type Reservierungsstatus,
+} from "@/lib/reservierungen";
 import { ladeReservierungenFuerStandort, waehleAktivenStandort } from "@/lib/standortfilter";
 
 import { ReservierungFormular } from "./reservierung-formular";
-import { reservierungAlsNoShowMarkieren } from "./actions";
+import {
+  reservierungAlsNoShowMarkieren,
+  reservierungsstatusWechseln,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +21,20 @@ function alsLokalesFormularDatum(datum: Date) {
   const versatz = datum.getTimezoneOffset() * 60_000;
   return new Date(datum.getTime() - versatz).toISOString().slice(0, 16);
 }
+
+const statusBezeichnungen: Record<Reservierungsstatus, string> = {
+  angefragt: "Angefragt",
+  bestaetigt: "Bestätigt",
+  storniert: "Storniert",
+  noShow: "No-Show",
+  abgeschlossen: "Abgeschlossen",
+};
+
+const aktionsBezeichnungen: Partial<Record<Reservierungsstatus, string>> = {
+  bestaetigt: "Bestätigen",
+  storniert: "Stornieren",
+  abgeschlossen: "Abschließen",
+};
 
 export default async function ReservierungenSeite({
   searchParams,
@@ -48,9 +70,9 @@ export default async function ReservierungenSeite({
     <main>
       <Link className="zurueck" href="/">← Startseite</Link>
       <header className="seitenkopf">
-        <p className="kennung">BV-006</p>
-        <h1>Tische Reservierungen zuordnen</h1>
-        <p>Reservierungsdaten pflegen und aktive Tische desselben Standorts zuordnen.</p>
+        <p className="kennung">Reservierungen</p>
+        <h1>Reservierungen verwalten</h1>
+        <p>Reservierungsdaten, Tischzuordnung und erlaubte Statusaktionen verwalten.</p>
       </header>
 
       {parameter.erfolg ? <p className="erfolg karte" role="status">{parameter.erfolg}</p> : null}
@@ -98,7 +120,11 @@ export default async function ReservierungenSeite({
                       : " · Noch kein Tisch"}
                   </p>
                 </div>
-                <span className="status inaktiv">{reservierung.status}</span>
+                <span className="status inaktiv">
+                  {istReservierungsstatus(reservierung.status)
+                    ? statusBezeichnungen[reservierung.status]
+                    : reservierung.status}
+                </span>
               </div>
               {reservierung.istGruppe && !darfGruppenPlanen ? (
                 <p className="sekundaer">
@@ -121,13 +147,27 @@ export default async function ReservierungenSeite({
                   }}
                 />
               )}
-              {reservierung.status === "bestaetigt" ? (
-                <form action={reservierungAlsNoShowMarkieren}>
-                  <input name="id" type="hidden" value={reservierung.id} />
-                  <input name="standortId" type="hidden" value={standort!.id} />
-                  <button type="submit">Als No-Show markieren</button>
-                  <p className="sekundaer">Frühestens 15 Minuten nach geplantem Beginn.</p>
-                </form>
+              {istReservierungsstatus(reservierung.status) ? (
+                <div className="formular-abschluss">
+                  {erlaubteReservierungsstatusWechsel(reservierung.status)
+                    .filter((zielstatus) => zielstatus !== "noShow")
+                    .map((zielstatus) => (
+                      <form action={reservierungsstatusWechseln} key={zielstatus}>
+                        <input name="id" type="hidden" value={reservierung.id} />
+                        <input name="standortId" type="hidden" value={standort!.id} />
+                        <input name="zielstatus" type="hidden" value={zielstatus} />
+                        <button type="submit">{aktionsBezeichnungen[zielstatus]}</button>
+                      </form>
+                    ))}
+                  {reservierung.status === "bestaetigt" ? (
+                    <form action={reservierungAlsNoShowMarkieren}>
+                      <input name="id" type="hidden" value={reservierung.id} />
+                      <input name="standortId" type="hidden" value={standort!.id} />
+                      <button type="submit">Als No-Show markieren</button>
+                      <p className="sekundaer">Frühestens 15 Minuten nach geplantem Beginn.</p>
+                    </form>
+                  ) : null}
+                </div>
               ) : null}
             </article>
           ))

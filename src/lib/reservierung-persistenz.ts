@@ -1,6 +1,11 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 
-import type { NormalisierteReservierungEingabe } from "./reservierungen";
+import {
+  istReservierungsstatus,
+  istReservierungsstatusWechselErlaubt,
+  type NormalisierteReservierungEingabe,
+  type Reservierungsstatus,
+} from "./reservierungen.ts";
 import { tischKombinationsSchluessel } from "./tischkombinationen.ts";
 
 export class ReservierungReferenzfehler extends Error {
@@ -65,6 +70,29 @@ export class NoShowFristFehler extends Error {
 export class NoShowUngepruefterStatuswechselFehler extends Error {
   constructor() {
     super("Bitte die eigene Aktion zum Markieren als No-Show verwenden.");
+  }
+}
+
+export class ReservierungsstatusNichtGefundenFehler extends Error {
+  constructor() {
+    super("Die Reservierung konnte nicht gefunden werden.");
+  }
+}
+
+export class ReservierungsstatusWechselFehler extends Error {
+  readonly ausgangsstatus: string;
+  readonly zielstatus: string;
+
+  constructor(ausgangsstatus: string, zielstatus: string) {
+    super(`Der Statuswechsel von „${ausgangsstatus}“ zu „${zielstatus}“ ist nicht erlaubt.`);
+    this.ausgangsstatus = ausgangsstatus;
+    this.zielstatus = zielstatus;
+  }
+}
+
+export class ReservierungsstatusManipulationFehler extends Error {
+  constructor() {
+    super("Statusänderungen sind nur über die vorgesehenen Statusaktionen erlaubt.");
   }
 }
 
@@ -186,8 +214,8 @@ export async function erstelleReservierung(
   datenbank: PrismaClient,
   eingabe: NormalisierteReservierungEingabe,
 ) {
-  if (eingabe.status === "noShow") {
-    throw new NoShowUngepruefterStatuswechselFehler();
+  if (eingabe.status !== "angefragt") {
+    throw new ReservierungsstatusManipulationFehler();
   }
   try {
     return await datenbank.$transaction(async (transaktion) => {
@@ -219,8 +247,8 @@ export async function aktualisiereReservierung(
         select: { status: true },
       });
       if (!vorhanden) throw new NoShowReservierungNichtGefundenFehler();
-      if (eingabe.status === "noShow" && vorhanden.status !== "noShow") {
-        throw new NoShowUngepruefterStatuswechselFehler();
+      if (eingabe.status !== vorhanden.status) {
+        throw new ReservierungsstatusManipulationFehler();
       }
       await pruefeAktiveReferenzen(transaktion, eingabe);
       await pruefeGruppenTischkombination(transaktion, eingabe);
@@ -241,6 +269,85 @@ export async function aktualisiereReservierung(
   } catch (fehler) {
     if (istDatenbankKonflikt(fehler)) {
       await wirfBeiKonflikt(datenbank, eingabe, id);
+    }
+    throw fehler;
+  }
+}
+
+export async function wechsleReservierungsstatus(
+  datenbank: PrismaClient,
+  id: string,
+  zielstatus: string,
+) {
+  if (!istReservierungsstatus(zielstatus) || zielstatus === "noShow") {
+    throw new ReservierungsstatusWechselFehler("unbekannt", zielstatus);
+  }
+
+  try {
+    return await datenbank.$transaction(async (transaktion) => {
+      const reservierung = await transaktion.reservierung.findUnique({
+        where: { id },
+        select: {
+          status: true,
+          beginn: true,
+          ende: true,
+          tische: { select: { tischId: true } },
+        },
+      });
+      if (!reservierung) throw new ReservierungsstatusNichtGefundenFehler();
+      if (
+        !istReservierungsstatus(reservierung.status) ||
+        !istReservierungsstatusWechselErlaubt(reservierung.status, zielstatus)
+      ) {
+        throw new ReservierungsstatusWechselFehler(reservierung.status, zielstatus);
+      }
+
+      if (BLOCKIERENDE_STATUS.includes(zielstatus)) {
+        await wirfBeiKonflikt(
+          transaktion,
+          {
+            gastId: "",
+            standortId: "",
+            beginn: reservierung.beginn,
+            ende: reservierung.ende,
+            personenanzahl: 1,
+            status: zielstatus as Reservierungsstatus,
+            notiz: "",
+            erstelltVonMitarbeiterId: "",
+            tischIds: reservierung.tische.map(({ tischId }) => tischId),
+            istGruppe: false,
+          },
+          id,
+        );
+      }
+
+      return transaktion.reservierung.update({
+        where: { id },
+        data: { status: zielstatus },
+      });
+    });
+  } catch (fehler) {
+    if (istDatenbankKonflikt(fehler)) {
+      const reservierung = await datenbank.reservierung.findUniqueOrThrow({
+        where: { id },
+        include: { tische: true },
+      });
+      await wirfBeiKonflikt(
+        datenbank,
+        {
+          gastId: reservierung.gastId,
+          standortId: reservierung.standortId,
+          beginn: reservierung.beginn,
+          ende: reservierung.ende,
+          personenanzahl: reservierung.personenanzahl,
+          status: zielstatus as Reservierungsstatus,
+          notiz: reservierung.notiz,
+          erstelltVonMitarbeiterId: reservierung.erstelltVonMitarbeiterId,
+          tischIds: reservierung.tische.map(({ tischId }) => tischId),
+          istGruppe: reservierung.istGruppe,
+        },
+        id,
+      );
     }
     throw fehler;
   }

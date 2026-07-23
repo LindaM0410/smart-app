@@ -69,6 +69,7 @@ Die Ergänzungen präzisieren die Spezifikation, ändern aber nicht deren Scope.
 - Für keinen Tisch dürfen sich aktive Reservierungsintervalle überschneiden.
 - `storniert` und `noShow` blockieren nach wirksamer Statusänderung kein zukünftiges Zeitfenster mehr.
 - Ein Statuswechsel muss als atomare Fachoperation erfolgen.
+- BV-030 erlaubt für regulär angelegte Reservierungen ausschließlich `angefragt` → `bestaetigt` oder `storniert` sowie `bestaetigt` → `storniert`, `noShow` oder `abgeschlossen`. `storniert`, `noShow` und `abgeschlossen` sind Endstatus. Die allgemeine Statusoperation darf `noShow` nicht setzen; dafür bleibt ausschließlich die zeitgeprüfte BV-010-Fachoperation zuständig. Servergrenze und SQLite-Trigger erzwingen dieselbe Folge, während bestätigte Walk-ins weiterhin direkt atomar angelegt werden können.
 - Reservierungen ab acht Personen werden serverseitig als Gruppe abgeleitet. Ihre
   vollständige Tischmenge muss exakt einer konfigurierten Tischkombination am
   Reservierungsstandort entsprechen.

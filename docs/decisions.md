@@ -640,3 +640,23 @@ Eine Gruppenreservierung kann nur gespeichert werden, wenn ihre vollständige Ti
 - Die Oberfläche zeigt Inhaber und Manager die konfigurierten Kombinationen; Bedienung erhält keine Bearbeitungsmaske für bestehende Gruppen.
 - Gruppenmenüs, automatische Kombinationsauswahl, neue Kombinationen, allgemeine Statusfolgen und Auditierung werden nicht eingeführt.
 - Rollenmatrix, serverseitige Gruppenableitung, exakte Kombinationsmenge, Bearbeitungsschutz, Standortbindung und bestehender Doppelbuchungsschutz sind mit 142 Tests, TypeScript-Prüfung und Produktions-Build verifiziert.
+
+## 2026-07-23 — Geschützter Lebenszyklus für Reservierungsstatus (BV-030)
+
+**Kontext:** Die fünf Reservierungsstatus und ihre Blockierwirkung waren festgelegt, konnten im allgemeinen Bearbeitungsformular aber frei gewählt werden. Dadurch fehlte eine durchgängige Statusfolge, und manipulierte Server-Action-Aufrufe konnten die vorhandene No-Show-Fachoperation umgehen.
+
+### Entscheidung
+
+Regulär erfasste Reservierungen beginnen mit `angefragt`. Von dort sind ausschließlich die Wechsel nach `bestaetigt` oder `storniert` erlaubt. Eine bestätigte Reservierung kann nach `storniert`, `abgeschlossen` oder über die bestehende zeitgeprüfte BV-010-Fachoperation nach `noShow` wechseln. `storniert`, `noShow` und `abgeschlossen` sind unveränderliche Endstatus.
+
+Die allgemeine Reservierungsbearbeitung darf den Status nicht verändern. Eine eigene atomare Statusoperation prüft den Ausgangsstatus serverseitig; `noShow` bleibt von ihr ausgeschlossen. SQLite-Trigger schützen zusätzlich die Statusmenge bei neuen Datensätzen und die Übergangsmatrix bei direkten Schreibzugriffen. Bestätigte Walk-ins dürfen weiterhin innerhalb ihrer bestehenden atomaren Fachoperation direkt angelegt werden.
+
+Die Reservierungsansicht zeigt statt einer freien Statusauswahl nur die vom aktuellen Status aus erlaubten Aktionen. Der No-Show-Hinweis und die früheste Frist von 15 Minuten bleiben unverändert.
+
+### Konsequenzen
+
+- Nur `angefragt` und `bestaetigt` blockieren weiterhin Tische; die bestehende atomare Doppelbuchungsprüfung gilt auch beim Wechsel in einen blockierenden Status.
+- No-Show beendet weiterhin nur die Planungsblockade und keine reale Belegung.
+- Gruppenkennzeichen, Rollenprüfung und erforderliche Tischkombinationen werden durch Statusaktionen nicht verändert.
+- Es entstehen keine neue Belegungslogik, Reservierungstypen, Auswertungen oder allgemeine Auditierung.
+- Statusmatrix, Endstatus, manipulierte Serverpfade, direkte Datenbankzugriffe, Blockierwirkung, No-Show-Regel und reale Belegung sind mit 145 Tests, TypeScript-Prüfung und Produktions-Build verifiziert.

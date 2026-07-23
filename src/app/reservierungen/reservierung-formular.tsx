@@ -2,20 +2,10 @@
 
 import { useActionState, useState } from "react";
 
-import { RESERVIERUNGSSTATUS } from "@/lib/reservierungen";
-
 import { reservierungAnlegen, reservierungBearbeiten } from "./actions";
 import type { ReservierungFormularStatus } from "./actions";
 
 const initialerStatus: ReservierungFormularStatus = { fehler: {} };
-
-const statusBezeichnungen: Record<(typeof RESERVIERUNGSSTATUS)[number], string> = {
-  angefragt: "Angefragt",
-  bestaetigt: "Bestätigt",
-  storniert: "Storniert",
-  noShow: "No-Show",
-  abgeschlossen: "Abgeschlossen",
-};
 
 type Auswahl = { id: string; name: string };
 type TischAuswahl = { id: string; nummer: string; standortId: string };
@@ -52,13 +42,10 @@ export function ReservierungFormular({
   const [standortId, setStandortId] = useState(reservierung?.standortId ?? "");
   const verfuegbareTische = tische.filter((tisch) => tisch.standortId === standortId);
   const tischNummer = new Map(tische.map((tisch) => [tisch.id, tisch.nummer]));
-  const waehlbareStatus = RESERVIERUNGSSTATUS.filter(
-    (wert) => wert !== "noShow" || reservierung?.status === "noShow",
-  );
-
   return (
     <form action={formularAktion} className="reservierung-formular">
       {reservierung ? <input name="id" type="hidden" value={reservierung.id} /> : null}
+      <input name="status" type="hidden" value={reservierung?.status ?? "angefragt"} />
 
       <label>
         Gast
@@ -149,16 +136,6 @@ export function ReservierungFormular({
           <span className="sekundaer">Gruppen ab 8 Personen planen nur Inhaber oder Manager.</span>
         ) : null}
         {status.fehler.personenanzahl ? <span className="fehler">{status.fehler.personenanzahl}</span> : null}
-      </label>
-
-      <label>
-        Status
-        <select defaultValue={reservierung?.status ?? "angefragt"} name="status" required>
-          {waehlbareStatus.map((wert) => (
-            <option key={wert} value={wert}>{statusBezeichnungen[wert]}</option>
-          ))}
-        </select>
-        {status.fehler.status ? <span className="fehler">{status.fehler.status}</span> : null}
       </label>
 
       <label className="formular-breit">
