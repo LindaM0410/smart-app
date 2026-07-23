@@ -66,6 +66,10 @@ Die Ergänzungen präzisieren die Spezifikation, ändern aber nicht deren Scope.
 - Zeitfenster sind halb-offen: `[beginn, ende)`.
 - `ende` muss nach `beginn` liegen; Standarddauer sind zwei Stunden.
 - Ein zugeordneter Tisch gehört zum Standort der Reservierung.
+- BV-031 erzwingt diese Standortbindung vor der Doppelbuchungsprüfung sowohl in
+  der Reservierungstransaktion als auch durch SQLite-Trigger auf Tischzuordnung,
+  Reservierungsstandort und Tischstandort. Ein Standortwechsel ist nur zusammen
+  mit einer vollständig standortgleichen Tischmenge möglich.
 - Für keinen Tisch dürfen sich aktive Reservierungsintervalle überschneiden.
 - `storniert` und `noShow` blockieren nach wirksamer Statusänderung kein zukünftiges Zeitfenster mehr.
 - Ein Statuswechsel muss als atomare Fachoperation erfolgen.

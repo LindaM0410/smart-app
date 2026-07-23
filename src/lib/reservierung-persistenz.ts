@@ -163,16 +163,25 @@ async function findeKonflikt(
     where: {
       id: eigeneReservierungId ? { not: eigeneReservierungId } : undefined,
       status: { in: BLOCKIERENDE_STATUS },
+      standortId: eingabe.standortId,
       beginn: { lt: eingabe.ende },
       ende: { gt: eingabe.beginn },
-      tische: { some: { tischId: { in: eingabe.tischIds } } },
+      tische: {
+        some: {
+          tischId: { in: eingabe.tischIds },
+          tisch: { standortId: eingabe.standortId },
+        },
+      },
     },
     orderBy: { beginn: "asc" },
     select: {
       beginn: true,
       ende: true,
       tische: {
-        where: { tischId: { in: eingabe.tischIds } },
+        where: {
+          tischId: { in: eingabe.tischIds },
+          tisch: { standortId: eingabe.standortId },
+        },
         take: 1,
         select: { tisch: { select: { nummer: true } } },
       },

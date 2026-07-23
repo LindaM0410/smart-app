@@ -660,3 +660,38 @@ Die Reservierungsansicht zeigt statt einer freien Statusauswahl nur die vom aktu
 - Gruppenkennzeichen, Rollenprüfung und erforderliche Tischkombinationen werden durch Statusaktionen nicht verändert.
 - Es entstehen keine neue Belegungslogik, Reservierungstypen, Auswertungen oder allgemeine Auditierung.
 - Statusmatrix, Endstatus, manipulierte Serverpfade, direkte Datenbankzugriffe, Blockierwirkung, No-Show-Regel und reale Belegung sind mit 145 Tests, TypeScript-Prüfung und Produktions-Build verifiziert.
+
+## 2026-07-23 — Durchgängige Standortbindung im Reservierungsbereich (BV-031)
+
+**Kontext:** Anlage und Bearbeitung von Reservierungen sowie Gruppenplanung und
+operative Oberfläche filterten Tische bereits nach dem Reservierungsstandort.
+Die Datenbank verhinderte jedoch noch nicht eigenständig, dass direkte
+Schreibzugriffe eine standortfremde Tischzuordnung anlegen oder eine bestehende
+Zuordnung durch einen nachträglichen Standortwechsel inkonsistent machen.
+
+### Entscheidung
+
+Die bestehende serverseitige Referenzprüfung bleibt die erste fachliche Prüfung:
+Sie akzeptiert nur aktive Tische des Reservierungsstandorts. Gruppenreservierungen
+verwenden weiterhin ausschließlich die vollständige, konfigurierte
+Tischkombination dieses Standorts. Die Konfliktsuche wird zusätzlich ausdrücklich
+auf Reservierungen und Tische dieses Standorts begrenzt.
+
+SQLite-Trigger erzwingen dieselbe Standortinvariante bei Anlage und Bearbeitung
+einer Reservierung-Tisch-Zuordnung. Sie verhindern außerdem, dass der Standort
+einer Reservierung oder eines bereits zugeordneten Tisches nachträglich
+auseinanderläuft. Die Doppelbuchungstrigger werten nur standortkorrekt gebundene
+Tische aus. Die bestehende Reservierungsoberfläche bleibt unverändert, weil ihre
+serverseitigen Abfragen bereits ausschließlich den gewählten aktiven Standort
+laden.
+
+### Konsequenzen
+
+- Manipulierte Formularwerte und direkte Datenbankänderungen können einer
+  Reservierung keinen standortfremden Tisch zuordnen.
+- Ein Standortwechsel mit einer unpassenden bestehenden oder neu übermittelten
+  Tischmenge wird vollständig zurückgerollt.
+- Bestehende Gruppen-, Status-, Rollen- und Doppelbuchungsregeln bleiben
+  unverändert und werden erst nach erfolgreicher Standortprüfung angewendet.
+- Bestellungen, Rechnungen, Catering, Gruppenmenüs, Auswertungen, Auditierung und
+  Seed- oder Beispieldaten werden nicht verändert.

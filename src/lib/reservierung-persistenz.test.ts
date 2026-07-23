@@ -132,6 +132,46 @@ async function erstelleTestdatenbank(t: TestContext) {
     ) BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_DOPPELBUCHUNG'); END
   `);
   await datenbank.$executeRawUnsafe(`
+    CREATE TRIGGER "ReservierungTisch_nur_eigener_Standort_insert"
+    BEFORE INSERT ON "ReservierungTisch"
+    WHEN NOT EXISTS (
+      SELECT 1 FROM "Reservierung" AS reservierung
+      JOIN "Tisch" AS tisch ON tisch."id" = NEW."tischId"
+      WHERE reservierung."id" = NEW."reservierungId"
+        AND reservierung."standortId" = tisch."standortId"
+    ) BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_TISCH_STANDORT_UNGUELTIG'); END
+  `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TRIGGER "ReservierungTisch_nur_eigener_Standort_update"
+    BEFORE UPDATE OF "reservierungId", "tischId" ON "ReservierungTisch"
+    WHEN NOT EXISTS (
+      SELECT 1 FROM "Reservierung" AS reservierung
+      JOIN "Tisch" AS tisch ON tisch."id" = NEW."tischId"
+      WHERE reservierung."id" = NEW."reservierungId"
+        AND reservierung."standortId" = tisch."standortId"
+    ) BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_TISCH_STANDORT_UNGUELTIG'); END
+  `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TRIGGER "Reservierung_Standortbindung_bewahren"
+    BEFORE UPDATE OF "standortId" ON "Reservierung"
+    WHEN EXISTS (
+      SELECT 1 FROM "ReservierungTisch" AS zuordnung
+      JOIN "Tisch" AS tisch ON tisch."id" = zuordnung."tischId"
+      WHERE zuordnung."reservierungId" = OLD."id"
+        AND tisch."standortId" <> NEW."standortId"
+    ) BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_TISCH_STANDORT_UNGUELTIG'); END
+  `);
+  await datenbank.$executeRawUnsafe(`
+    CREATE TRIGGER "Tisch_Reservierungsstandort_bewahren"
+    BEFORE UPDATE OF "standortId" ON "Tisch"
+    WHEN EXISTS (
+      SELECT 1 FROM "ReservierungTisch" AS zuordnung
+      JOIN "Reservierung" AS reservierung ON reservierung."id" = zuordnung."reservierungId"
+      WHERE zuordnung."tischId" = OLD."id"
+        AND reservierung."standortId" <> NEW."standortId"
+    ) BEGIN SELECT RAISE(ABORT, 'RESERVIERUNG_TISCH_STANDORT_UNGUELTIG'); END
+  `);
+  await datenbank.$executeRawUnsafe(`
     CREATE TRIGGER "Reservierung_status_gueltig_insert"
     BEFORE INSERT ON "Reservierung"
     WHEN NEW."status" NOT IN ('angefragt', 'bestaetigt', 'storniert', 'noShow', 'abgeschlossen')
@@ -217,6 +257,31 @@ const eingabe = normalisiereReservierung({
   erstelltVonMitarbeiterId: "mitarbeiter-1",
   tischIds: ["tisch-1"],
 });
+
+async function erstelleAnderenStandortMitTisch(datenbank: PrismaClient) {
+  await datenbank.standort.create({
+    data: {
+      id: "standort-anders",
+      name: "Spandau",
+      adresse: "Testweg 2",
+      sitzplaetze: 50,
+      hatTerrasse: false,
+      hatGrill: false,
+      aktiv: true,
+    },
+  });
+  await datenbank.tisch.create({
+    data: {
+      id: "tisch-anders",
+      standortId: "standort-anders",
+      nummer: "S-01",
+      kapazitaet: 4,
+      bereich: "innen",
+      kombinierbar: true,
+      aktiv: true,
+    },
+  });
+}
 
 async function erstelleGueltigeKombination(datenbank: PrismaClient) {
   await datenbank.tischKombination.create({
@@ -345,28 +410,7 @@ test("weist nicht vorhandene oder inaktive Referenzen zurück", async (t) => {
 
 test("weist unbekannte, inaktive und standortfremde Tische zurück", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
-  const andererStandort = await datenbank.standort.create({
-    data: {
-      id: "standort-anders",
-      name: "Spandau",
-      adresse: "Testweg 2",
-      sitzplaetze: 50,
-      hatTerrasse: false,
-      hatGrill: false,
-      aktiv: true,
-    },
-  });
-  await datenbank.tisch.create({
-    data: {
-      id: "tisch-anders",
-      standortId: andererStandort.id,
-      nummer: "S-01",
-      kapazitaet: 4,
-      bereich: "innen",
-      kombinierbar: false,
-      aktiv: true,
-    },
-  });
+  await erstelleAnderenStandortMitTisch(datenbank);
 
   for (const tischId of ["fehlt", "tisch-inaktiv", "tisch-anders"]) {
     await assert.rejects(
@@ -375,6 +419,64 @@ test("weist unbekannte, inaktive und standortfremde Tische zurück", async (t) =
         fehler instanceof ReservierungReferenzfehler && fehler.feld === "tischIds",
     );
   }
+});
+
+test("weist einen Standortwechsel mit vorhandener Tischzuordnung atomar zurück", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await erstelleAnderenStandortMitTisch(datenbank);
+  const reservierung = await erstelleReservierung(datenbank, eingabe);
+
+  await assert.rejects(
+    aktualisiereReservierung(datenbank, reservierung.id, {
+      ...eingabe,
+      standortId: "standort-anders",
+      tischIds: ["tisch-1"],
+    }),
+    (fehler) =>
+      fehler instanceof ReservierungReferenzfehler && fehler.feld === "tischIds",
+  );
+
+  const unveraendert = await datenbank.reservierung.findUniqueOrThrow({
+    where: { id: reservierung.id },
+    include: { tische: true },
+  });
+  assert.equal(unveraendert.standortId, "standort-aktiv");
+  assert.deepEqual(unveraendert.tische.map(({ tischId }) => tischId), ["tisch-1"]);
+});
+
+test("erzwingt die Standortbindung auch bei direkten Datenbankänderungen", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await erstelleAnderenStandortMitTisch(datenbank);
+  const reservierung = await erstelleReservierung(datenbank, eingabe);
+
+  await assert.rejects(
+    datenbank.reservierungTisch.create({
+      data: { reservierungId: reservierung.id, tischId: "tisch-anders" },
+    }),
+  );
+  await assert.rejects(
+    datenbank.reservierung.update({
+      where: { id: reservierung.id },
+      data: { standortId: "standort-anders" },
+    }),
+  );
+  await assert.rejects(
+    datenbank.tisch.update({
+      where: { id: "tisch-1" },
+      data: { standortId: "standort-anders" },
+    }),
+  );
+
+  const unveraendert = await datenbank.reservierung.findUniqueOrThrow({
+    where: { id: reservierung.id },
+    include: { tische: true },
+  });
+  assert.equal(unveraendert.standortId, "standort-aktiv");
+  assert.deepEqual(unveraendert.tische.map(({ tischId }) => tischId), ["tisch-1"]);
+  assert.equal(
+    (await datenbank.tisch.findUniqueOrThrow({ where: { id: "tisch-1" } })).standortId,
+    "standort-aktiv",
+  );
 });
 
 test("verhindert überlappende aktive Reservierungen für denselben Tisch", async (t) => {
