@@ -20,7 +20,7 @@ Die Anforderungen sind aus der Spezifikation übernommen, aber noch nicht durch 
 
 | Datum | Änderung | Status | Umfang |
 | --- | --- | --- | --- |
-| 23.07.2026 | Startnavigation rollenorientiert vereinfachen | umgesetzt und verifiziert | Vorhandene Links in „Administratives“, „Alltagsgeschäft“, „Abrechnung/Freigaben“ und „Küche“ gruppiert; keine Rollenrechte, Routen, Fachregeln oder Datenmodelle geändert. Diese UX-Änderung erhält keine Feature-ID und verändert keinen Status bestehender Features. |
+| 23.07.2026 | Startnavigation als Bereichs-Dashboard vereinfachen | umgesetzt und verifiziert | Zunächst nur erlaubte Arbeitsbereiche als große Karten anzeigen; Funktionen erst nach serverseitiger Auswahl über `?bereich=…` einblenden und Rückkehr zur Bereichsauswahl anbieten. Rollenrechte, Routen, Fachregeln und Datenmodelle bleiben unverändert. Ohne Feature-ID; mit 138 Tests, TypeScript-Prüfung und Produktions-Build verifiziert. |
 
 ## Phase 1 — Kern: Reservierung und Tischplanung
 

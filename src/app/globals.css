@@ -61,7 +61,44 @@ h2 {
 
 .arbeitsbereiche {
   display: grid;
-  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.bereichskarte {
+  display: grid;
+  min-height: 7rem;
+  align-content: center;
+  gap: 0.35rem;
+  border: 2px solid #dfd8d0;
+  border-radius: 0.9rem;
+  padding: 1.5rem;
+  color: inherit;
+  background: #fff;
+  box-shadow: 0 0.25rem 1rem rgb(65 43 31 / 6%);
+  text-decoration: none;
+}
+
+.bereichskarte strong {
+  font-size: 1.2rem;
+}
+
+.bereichskarte span {
+  color: #665f59;
+}
+
+.bereichskarte:hover,
+.bereichskarte.ausgewaehlt {
+  border-color: #8a3f2b;
+}
+
+.bereichskarte.ausgewaehlt {
+  background: #f5ebe7;
+}
+
+.bereichsauswahl-link {
+  margin-bottom: 1.25rem;
 }
 
 .arbeitsbereich {

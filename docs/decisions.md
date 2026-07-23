@@ -607,3 +607,18 @@ Die bestehenden Rechnungstrigger werden in der Bella-Card-Migration vor dem Date
 - Die lokale fehlgeschlagene Migration konnte ohne Datenbank-Reset sicher zurückgenommen und anschließend regulär angewendet werden.
 - Der Vergleich mit der lokalen Sicherung ergab keine Abweichungen bei bestehenden Rechnungs- und Zahlungsdaten und keine inkonsistenten neuen Bella-Card-Felder.
 - Prisma-Migrationsstatus, vollständige Testsuite mit 135 Tests, TypeScript-Prüfung, Produktions-Build und `git diff --check` wurden erfolgreich ausgeführt.
+
+## 2026-07-23 — Dashboard-artige Bereichsauswahl auf der Startseite
+
+**Kontext:** Die rollenorientierte Gruppierung ließ weiterhin alle erlaubten Funktionen gleichzeitig sichtbar und wirkte dadurch trotz Arbeitsbereichen unaufgeräumt.
+
+### Entscheidung
+
+Die Startseite zeigt zunächst nur die großen Karten der für den angemeldeten Mitarbeiter erlaubten Arbeitsbereiche. Die Auswahl erfolgt über den serverseitig ausgewerteten URL-Parameter `bereich`; darunter erscheinen ausschließlich die Funktionen des ausgewählten Bereichs. Ein Link führt zurück zur reinen Bereichsauswahl.
+
+### Konsequenzen
+
+- Bereiche ohne erlaubte Funktionen werden nicht angeboten und können nicht über den Parameter geöffnet werden.
+- Vorhandene Funktionsrouten, Rollen, Berechtigungen und serverseitige Zugriffskontrollen bleiben unverändert.
+- Die UX-Änderung führt keine neue Fachfunktion und keine neue Feature-ID ein.
+- Bereichsauswahl, unerlaubte und unbekannte Parameter sind automatisiert getestet; die vollständige Testsuite mit 138 Tests, TypeScript-Prüfung, Produktions-Build und `git diff --check` wurde erfolgreich ausgeführt.
