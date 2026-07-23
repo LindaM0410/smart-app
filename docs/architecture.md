@@ -88,7 +88,7 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 - BV-033 berechnet den aktuellen Bruttobetrag einer Bestellung ausschließlich als Summe ganzzahliger Centprodukte aus Menge und Preis-Snapshot. Alle nicht stornierten Positionsstatus werden einbezogen; leere Bestellungen ergeben null Cent und unsichere Ganzzahloperationen werden abgewiesen.
 - Eine Rechnung referenziert genau eine Bestellung und speichert deren bei Erzeugung serverseitig berechneten Bruttobetrag als unveränderlichen Cent-Snapshot. Pro Bestellung ist höchstens eine Rechnung zulässig; mindestens eine nicht stornierte Position ist erforderlich.
 - BV-034 erlaubt für eine bestehende offene Rechnung genau den einmaligen Übergang zu `bezahlt`. Dabei werden ausschließlich `bar` oder `karte` sowie ein serverseitiger Bezahlzeitpunkt gespeichert; der Betragssnapshot bleibt unverändert.
-- Bella-Card-Rabatt beträgt 15 % und erfordert einen berechtigten Zahler plus berechtigte Freigabe.
+- BV-018 erlaubt einer offenen Rechnung einen aktiven Gast als Zahler zuzuordnen. Bei aktiver Bella-Card werden nach Freigabe durch Inhaber oder Manager 15 % Rabatt rein ganzzahlig und kaufmännisch auf Cent gerundet; Rabatt- und Endbetrag werden ausschließlich serverseitig aus dem unveränderten Bruttobetrag abgeleitet. Bezahlte Rechnungen bleiben unveränderlich.
 
 ### Standort und Angebot
 
@@ -115,6 +115,8 @@ BV-016 ergänzt die getrennte Fähigkeit `kuechenstatusPflegen` für Küche, Man
 BV-019 ergänzt die Fähigkeit `bestellpositionStornieren` ausschließlich für Manager und Inhaber. Sie schützt die Storno-Server-Action unabhängig von der Sichtbarkeit in der Oberfläche. Bestellpositionen dürfen nur von `offen` oder `inZubereitung` nach `storniert` wechseln; `serviert` und `storniert` sind keine zulässigen Ausgangsstatus. Die Datenbank erzwingt Übergang, berechtigten aktiven Freigabeakteur und unveränderte Positionsdaten. Stornoakteur und -zeitpunkt bleiben unmittelbar an der Position historisiert.
 
 BV-034 ergänzt die Fähigkeit `rechnungBezahlen` für Inhaber, Manager und Bedienung. Küche bleibt ausgeschlossen. Die Server Action übernimmt ausschließlich Rechnungs-ID und Zahlungsart; Status und Zeitpunkt werden serverseitig gesetzt. Ein Datenbank-Trigger begrenzt Änderungen zusätzlich auf `offen` → `bezahlt`, erlaubt nur `bar` oder `karte` und schützt den Betragssnapshot sowie die übrigen Rechnungsdaten.
+
+BV-018 ergänzt die Fähigkeit `bellaCardRabattAnwenden` ausschließlich für Inhaber und Manager. Sie schützt Zahlerauswahl und Rabattfreigabe in der bestehenden Bestellansicht. Bedienung und Küche besitzen diese Fähigkeit nicht. Die Datenbank prüft zusätzlich offene Rechnung, aktiven Zahler, aktive Bella-Card, berechtigten Freigabeakteur und die serverseitig abgeleiteten Centbeträge.
 
 ## 8. Qualitäts- und Teststrategie
 

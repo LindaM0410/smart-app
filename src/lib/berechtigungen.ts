@@ -5,13 +5,14 @@ export const FAEHIGKEITEN = {
   bestellpositionStornieren: "bestellpositionStornieren",
   rechnungErzeugen: "rechnungErzeugen",
   rechnungBezahlen: "rechnungBezahlen",
+  bellaCardRabattAnwenden: "bellaCardRabattAnwenden",
 } as const;
 
 export type Faehigkeit = (typeof FAEHIGKEITEN)[keyof typeof FAEHIGKEITEN];
 
 const rollenFaehigkeiten: Record<string, readonly Faehigkeit[]> = {
-  inhaber: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen],
-  manager: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen],
+  inhaber: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen, FAEHIGKEITEN.bellaCardRabattAnwenden],
+  manager: [FAEHIGKEITEN.stammdatenPflegen, FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.kuechenstatusPflegen, FAEHIGKEITEN.bestellpositionStornieren, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen, FAEHIGKEITEN.bellaCardRabattAnwenden],
   bedienung: [FAEHIGKEITEN.operativeAblaeufeNutzen, FAEHIGKEITEN.rechnungErzeugen, FAEHIGKEITEN.rechnungBezahlen],
   kueche: [FAEHIGKEITEN.kuechenstatusPflegen],
 };

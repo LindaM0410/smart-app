@@ -9,10 +9,14 @@ import type { TestContext } from "node:test";
 import { PrismaClient } from "@prisma/client";
 
 import {
+  BellaCardRabattNichtMoeglichFehler,
+  berechneBellaCardRabattCent,
   erstelleRechnung,
   markiereRechnungAlsBezahlt,
   RechnungNichtMoeglichFehler,
   RechnungZahlungNichtMoeglichFehler,
+  waehleRechnungszahler,
+  wendeBellaCardRabattAn,
 } from "./rechnung-persistenz.ts";
 
 async function erstelleTestdatenbank(t: TestContext) {
@@ -36,6 +40,13 @@ async function erstelleTestdatenbank(t: TestContext) {
   await datenbank.mitarbeiter.createMany({ data: [
     { id: "bedienung", name: "Bedienung", benutzername: "bedienung", rolle: "bedienung", hauptstandortId: "standort" },
     { id: "manager", name: "Manager", benutzername: "manager", rolle: "manager", hauptstandortId: "standort" },
+    { id: "inhaber", name: "Inhaber", benutzername: "inhaber", rolle: "inhaber", hauptstandortId: "standort" },
+    { id: "kueche", name: "Küche", benutzername: "kueche", rolle: "kueche", hauptstandortId: "standort" },
+  ] });
+  await datenbank.gast.createMany({ data: [
+    { id: "bella", name: "Bella Card", telefon: "", notiz: "", hatBellaCard: true },
+    { id: "ohne-card", name: "Ohne Card", telefon: "", notiz: "" },
+    { id: "inaktiv", name: "Inaktiv", telefon: "", notiz: "", hatBellaCard: true, aktiv: false },
   ] });
   await datenbank.artikel.create({ data: {
     id: "pasta", name: "Pasta", kategorie: "Hauptgericht", preisCent: 1290,
@@ -82,6 +93,101 @@ test("erzeugt eine offene Rechnung mit Bruttobetrag-Snapshot aus BV-033", async 
   assert.equal(snapshot.bruttobetragCent, 2580);
 });
 
+test("berechnet 15 Prozent kaufmännisch und ausschließlich mit sicheren Cent-Ganzzahlen", () => {
+  assert.equal(berechneBellaCardRabattCent(2580), 387);
+  assert.equal(berechneBellaCardRabattCent(123), 18);
+  assert.equal(berechneBellaCardRabattCent(10), 2);
+  assert.equal(berechneBellaCardRabattCent(0), 0);
+  assert.throws(() => berechneBellaCardRabattCent(1.5), BellaCardRabattNichtMoeglichFehler);
+  assert.throws(() => berechneBellaCardRabattCent(Number.MAX_SAFE_INTEGER + 1), BellaCardRabattNichtMoeglichFehler);
+});
+
+test("wendet Bella-Card-Rabatt mit aktivem Zahler und Freigabe durch Inhaber oder Manager an", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
+  await waehleRechnungszahler(datenbank, rechnung.id, "bella");
+
+  const rabattiert = await wendeBellaCardRabattAn(datenbank, rechnung.id, "manager");
+
+  assert.equal(rabattiert.zahlerGastId, "bella");
+  assert.equal(rabattiert.bruttobetragCent, 2580);
+  assert.equal(rabattiert.rabattbetragCent, 387);
+  assert.equal(rabattiert.endbetragCent, 2193);
+  assert.equal(rabattiert.rabattFreigegebenVonMitarbeiterId, "manager");
+});
+
+test("speichert einen aktiven Zahler, lehnt aber Rabatt ohne aktive Bella-Card ab", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
+  await waehleRechnungszahler(datenbank, rechnung.id, "ohne-card");
+  await assert.rejects(
+    wendeBellaCardRabattAn(datenbank, rechnung.id, "manager"),
+    BellaCardRabattNichtMoeglichFehler,
+  );
+  await assert.rejects(
+    waehleRechnungszahler(datenbank, rechnung.id, "inaktiv"),
+    BellaCardRabattNichtMoeglichFehler,
+  );
+  const unveraendert = await datenbank.rechnung.findUniqueOrThrow({ where: { id: rechnung.id } });
+  assert.equal(unveraendert.zahlerGastId, "ohne-card");
+  assert.equal(unveraendert.rabattbetragCent, 0);
+  assert.equal(unveraendert.endbetragCent, 2580);
+});
+
+test("lehnt Bedienung und Küche als Rabattfreigebende ab", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
+  await waehleRechnungszahler(datenbank, rechnung.id, "bella");
+  for (const mitarbeiterId of ["bedienung", "kueche"]) {
+    await assert.rejects(
+      wendeBellaCardRabattAn(datenbank, rechnung.id, mitarbeiterId),
+      BellaCardRabattNichtMoeglichFehler,
+    );
+  }
+});
+
+test("bezahlte oder bereits rabattierte Rechnungen können nicht nachträglich rabattiert werden", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
+  await markiereRechnungAlsBezahlt(datenbank, rechnung.id, "bar");
+  await assert.rejects(
+    waehleRechnungszahler(datenbank, rechnung.id, "bella"),
+    BellaCardRabattNichtMoeglichFehler,
+  );
+
+  const zweite = await erstelleRechnung(datenbank, "kostenlos");
+  await waehleRechnungszahler(datenbank, zweite.id, "bella");
+  await wendeBellaCardRabattAn(datenbank, zweite.id, "inhaber");
+  await assert.rejects(
+    wendeBellaCardRabattAn(datenbank, zweite.id, "manager"),
+    BellaCardRabattNichtMoeglichFehler,
+  );
+});
+
+test("Datenbank übernimmt keine manipulierten Rabatt- oder Endbeträge", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
+
+  await assert.rejects(datenbank.rechnung.update({
+    where: { id: rechnung.id },
+    data: {
+      zahlerGastId: "bella",
+      rabattbetragCent: 1,
+      endbetragCent: 2579,
+      rabattFreigegebenVonMitarbeiterId: "manager",
+    },
+  }));
+  await assert.rejects(datenbank.rechnung.update({
+    where: { id: rechnung.id },
+    data: {
+      zahlerGastId: "ohne-card",
+      rabattbetragCent: 387,
+      endbetragCent: 2193,
+      rabattFreigegebenVonMitarbeiterId: "manager",
+    },
+  }));
+});
+
 test("weist leere Bestellungen und Bestellungen mit ausschließlich stornierten Positionen zurück", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
   await assert.rejects(erstelleRechnung(datenbank, "leer"), RechnungNichtMoeglichFehler);
@@ -106,10 +212,10 @@ test("erlaubt höchstens eine Rechnung pro Bestellung", async (t) => {
 test("Datenbank lehnt manipulierte Beträge und Status ab und bewahrt den Snapshot", async (t) => {
   const datenbank = await erstelleTestdatenbank(t);
   await assert.rejects(datenbank.rechnung.create({ data: {
-    bestellungId: "mit-positionen", bruttobetragCent: 1, status: "offen",
+    bestellungId: "mit-positionen", bruttobetragCent: 1, endbetragCent: 1, status: "offen",
   } }));
   await assert.rejects(datenbank.rechnung.create({ data: {
-    bestellungId: "mit-positionen", bruttobetragCent: 2580, status: "bezahlt",
+    bestellungId: "mit-positionen", bruttobetragCent: 2580, endbetragCent: 2580, status: "bezahlt",
   } }));
 
   const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
@@ -129,6 +235,7 @@ test("markiert eine offene Rechnung mit Zahlungsart und serverseitigem Zeitpunkt
   assert.equal(bezahlt.zahlungsart, "bar");
   assert.deepEqual(bezahlt.bezahltAm, bezahltAm);
   assert.equal(bezahlt.bruttobetragCent, 2580);
+  assert.equal(bezahlt.endbetragCent, 2580);
 });
 
 test("akzeptiert ausschließlich bar oder karte als Zahlungsart", async (t) => {
@@ -164,6 +271,7 @@ test("Datenbank sperrt vorbefüllte und manipulierte Zahlungsdaten", async (t) =
   await assert.rejects(datenbank.rechnung.create({ data: {
     bestellungId: "mit-positionen",
     bruttobetragCent: 2580,
+    endbetragCent: 2580,
     status: "offen",
     zahlungsart: "bar",
     bezahltAm: new Date(),

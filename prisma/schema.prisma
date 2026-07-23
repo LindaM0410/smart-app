@@ -54,6 +54,7 @@ model Mitarbeiter {
   hauptstandort        Standort                      @relation(fields: [hauptstandortId], references: [id], onDelete: Restrict)
   bestellungen         Bestellung[]
   storniertePositionen Bestellposition[]             @relation("BestellpositionStorno")
+  freigegebeneRabatte  Rechnung[]                    @relation("RechnungRabattfreigabe")
   authentifizierung    MitarbeiterAuthentifizierung?
   sitzungen            MitarbeiterSitzung[]
 
@@ -127,6 +128,7 @@ model Gast {
   besuchsanzahl  Int            @default(0)
   aktiv          Boolean        @default(true)
   reservierungen Reservierung[]
+  rechnungen     Rechnung[]
 }
 
 model Reservierung {
@@ -174,14 +176,23 @@ model Bestellung {
 }
 
 model Rechnung {
-  id                 String     @id @default(cuid())
-  bestellungId       String     @unique
-  bruttobetragCent   Int
-  status             String     @default("offen")
-  zahlungsart        String?
-  bezahltAm          DateTime?
-  erstelltAm         DateTime   @default(now())
-  bestellung         Bestellung @relation(fields: [bestellungId], references: [id], onDelete: Restrict)
+  id                               String       @id @default(cuid())
+  bestellungId                     String       @unique
+  zahlerGastId                     String?
+  bruttobetragCent                 Int
+  rabattbetragCent                 Int          @default(0)
+  endbetragCent                    Int
+  rabattFreigegebenVonMitarbeiterId String?
+  status                           String       @default("offen")
+  zahlungsart                      String?
+  bezahltAm                        DateTime?
+  erstelltAm                       DateTime     @default(now())
+  bestellung                       Bestellung   @relation(fields: [bestellungId], references: [id], onDelete: Restrict)
+  zahler                           Gast?        @relation(fields: [zahlerGastId], references: [id], onDelete: Restrict)
+  rabattFreigegebenVonMitarbeiter  Mitarbeiter? @relation("RechnungRabattfreigabe", fields: [rabattFreigegebenVonMitarbeiterId], references: [id], onDelete: Restrict)
+
+  @@index([zahlerGastId])
+  @@index([rabattFreigegebenVonMitarbeiterId])
 }
 
 model Bestellposition {

@@ -76,7 +76,11 @@ export function ladeBestellungenFuerStandort(datenbank: PrismaClient, standortId
           storniertVonMitarbeiter: { select: { name: true } },
         },
       },
-      rechnung: true,
+      rechnung: {
+        include: {
+          zahler: { select: { name: true } },
+        },
+      },
     },
   });
 }

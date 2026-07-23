@@ -560,3 +560,21 @@ Die eigene Fähigkeit `rechnungBezahlen` ist Inhaber, Manager und Bedienung zuge
 - Bezahlstatus, Zahlungsart und Bezahlzeitpunkt sind in der Bestellansicht sichtbar.
 - Der bestehende Rechnungsbetrag bleibt beim Bezahlen unverändert.
 - Rabatte, Teil- oder Sammelzahlungen, Rechnungsstorno, Bestellstatusänderungen, Auditierung sowie Seed- und Beispieldaten werden nicht eingeführt.
+
+## 2026-07-23 — Manuell angewendeter Bella-Card-Rabatt in der Bestellansicht (BV-018)
+
+**Kontext:** Eine Bella-Card gehört zu einem Gast, während Bestellung und Rechnung tischbezogen bleiben. Für diesen Slice soll der Hinweis des Gasts beim Bezahlen genügen, ohne einen zusätzlichen Mitteilungs- oder Erkennungsablauf einzuführen. Spec und Backlog nennen Inhaber und Manager ausdrücklich als rabattberechtigte Freigaberollen.
+
+### Entscheidung
+
+Die App geht davon aus, dass der Gast beim Bezahlen selbst auf seine Bella-Card hinweist. Inhaber oder Manager/Lorenzo wählen daraufhin ausschließlich in der bestehenden Rubrik „Bestellungen pro Tisch“ bei einer offenen Rechnung einen aktiven Gast als Zahler aus und wenden den Rabatt manuell an. Bedienung und Küche dürfen weder Zahlerauswahl noch Rabattfreigabe ausführen. Es entstehen keine eigene Bella-Card-Seite, keine Mitteilungsfunktion und keine automatische Bella-Card-Erkennung oder Verknüpfung mit der Bestellaufnahme.
+
+Der Rabatt darf nur bei einem ausgewählten aktiven Zahler mit aktiver Bella-Card angewendet werden. Er beträgt 15 Prozent des unveränderten Bruttobetrags, wird ohne Fließkommaarithmetik kaufmännisch auf den nächsten Cent gerundet und zusammen mit dem finalen Centbetrag sowie dem Freigabeakteur gespeichert. Zahler, Rabatt und finaler Betrag können nach dem Bezahlen nicht mehr verändert werden. Die maßgeblichen Werte werden serverseitig berechnet und zusätzlich durch Datenbankregeln gegen manipulierte Schreibzugriffe geschützt.
+
+### Konsequenzen
+
+- Die Bestellaufnahme bleibt unabhängig von Gast- und Bella-Card-Erkennung.
+- Ein aktiver Gast kann zunächst als Zahler gespeichert werden; ohne aktive Bella-Card bleibt die Rabattfreigabe wirkungslos.
+- Inhaber und Manager dürfen freigeben, weil beide Rollen in Spec und Backlog ausdrücklich genannt sind; Bedienung und Küche bleiben ausgeschlossen.
+- Bruttobetrag, Zahler, angewendeter Rabattbetrag und finaler Betrag sind in „Bestellungen pro Tisch“ sichtbar.
+- Teilrechnungen, getrennte oder gemeinsame Zahlungen, Mitteilungen, automatische Erkennung, Rechnungsstorno, allgemeine Auditierung sowie Seed- und Beispieldaten werden nicht eingeführt.

@@ -10,7 +10,7 @@ import { waehleAktivenStandort } from "@/lib/standortfilter";
 
 import { BestellungFormular } from "./bestellung-formular";
 import { BestellpositionFormular } from "./bestellposition-formular";
-import { bestellpositionStornieren, rechnungAlsBezahltMarkieren, rechnungErzeugen } from "./actions";
+import { bellaCardRabattAnwenden, bestellpositionStornieren, rechnungAlsBezahltMarkieren, rechnungErzeugen, rechnungszahlerWaehlen } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -21,23 +21,27 @@ export default async function BestellungenSeite({
 }) {
   const mitarbeiter = await verlangeFaehigkeit(FAEHIGKEITEN.operativeAblaeufeNutzen);
   const darfStornieren = hatFaehigkeit(mitarbeiter, FAEHIGKEITEN.bestellpositionStornieren);
+  const darfBellaCardRabattAnwenden = hatFaehigkeit(mitarbeiter, FAEHIGKEITEN.bellaCardRabattAnwenden);
   const parameter = await searchParams;
   const standorte = await prisma.standort.findMany({
     where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true },
   });
   const standort = waehleAktivenStandort(standorte, parameter.standortId);
-  const [tische, reservierungen, bestellungen, artikel] = standort ? await Promise.all([
+  const [tische, reservierungen, bestellungen, artikel, gaeste] = standort ? await Promise.all([
     prisma.tisch.findMany({ where: { standortId: standort.id, aktiv: true }, orderBy: { nummer: "asc" }, select: { id: true, nummer: true } }),
     prisma.reservierung.findMany({ where: { standortId: standort.id }, orderBy: { beginn: "desc" }, select: { id: true, beginn: true, gast: { select: { name: true } } } }),
     ladeBestellungenFuerStandort(prisma, standort.id),
     ladeGueltigesArtikelangebot(prisma, standort.id),
-  ]) : [[], [], [], []];
+    darfBellaCardRabattAnwenden
+      ? prisma.gast.findMany({ where: { aktiv: true }, orderBy: { name: "asc" }, select: { id: true, name: true } })
+      : Promise.resolve([]),
+  ]) : [[], [], [], [], []];
 
   return (
     <main>
       <Link className="zurueck" href="/">← Startseite</Link>
       <header className="seitenkopf">
-        <p className="kennung">BV-017</p>
+        <p className="kennung">BV-018</p>
         <h1>Bestellungen pro Tisch</h1>
         <p>Offene Bestellungen pflegen und Positionen aus dem gültigen Standortangebot aufnehmen.</p>
       </header>
@@ -122,6 +126,39 @@ export default async function BestellungenSeite({
                     <strong>Bruttobetrag: {formatierePreis(bestellung.rechnung.bruttobetragCent)}</strong>
                     <span className="status aktiv">{bestellung.rechnung.status}</span>
                   </div>
+                  <p className="sekundaer">
+                    Zahler: {bestellung.rechnung.zahler?.name ?? "nicht ausgewählt"}
+                  </p>
+                  {bestellung.rechnung.rabattFreigegebenVonMitarbeiterId ? (
+                    <p className="sekundaer">
+                      Bella-Card-Rabatt (15 %): −{formatierePreis(bestellung.rechnung.rabattbetragCent)}
+                    </p>
+                  ) : null}
+                  <p><strong>Finaler Betrag: {formatierePreis(bestellung.rechnung.endbetragCent)}</strong></p>
+                  {darfBellaCardRabattAnwenden
+                    && bestellung.rechnung.status === "offen"
+                    && !bestellung.rechnung.zahlerGastId ? (
+                    <form action={rechnungszahlerWaehlen} className="zahlungsformular">
+                      <input name="rechnungId" type="hidden" value={bestellung.rechnung.id} />
+                      <label>
+                        Zahlenden Gast auswählen
+                        <select name="zahlerGastId" required>
+                          <option value="">Bitte wählen</option>
+                          {gaeste.map((gast) => <option key={gast.id} value={gast.id}>{gast.name}</option>)}
+                        </select>
+                      </label>
+                      <button type="submit">Zahler auswählen</button>
+                    </form>
+                  ) : null}
+                  {darfBellaCardRabattAnwenden
+                    && bestellung.rechnung.status === "offen"
+                    && bestellung.rechnung.zahlerGastId
+                    && !bestellung.rechnung.rabattFreigegebenVonMitarbeiterId ? (
+                    <form action={bellaCardRabattAnwenden}>
+                      <input name="rechnungId" type="hidden" value={bestellung.rechnung.id} />
+                      <button type="submit">15 % Bella-Card-Rabatt anwenden</button>
+                    </form>
+                  ) : null}
                   {bestellung.rechnung.status === "bezahlt" ? (
                     <p className="sekundaer">
                       Zahlungsart: {bestellung.rechnung.zahlungsart === "bar" ? "Bar" : "Karte"}

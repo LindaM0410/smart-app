@@ -19,11 +19,14 @@ import {
 } from "@/lib/bestellung-persistenz";
 import { prisma } from "@/lib/prisma";
 import {
+  BellaCardRabattNichtMoeglichFehler,
   erstelleRechnung,
   markiereRechnungAlsBezahlt,
   RechnungNichtMoeglichFehler,
   RechnungZahlungNichtMoeglichFehler,
   type Zahlungsart,
+  waehleRechnungszahler,
+  wendeBellaCardRabattAn,
 } from "@/lib/rechnung-persistenz";
 
 export type BestellungFormularStatus = {
@@ -181,6 +184,35 @@ export async function rechnungAlsBezahltMarkieren(formular: FormData) {
     await markiereRechnungAlsBezahlt(prisma, rechnungId, zahlungsart as Zahlungsart);
   } catch (error) {
     if (error instanceof RechnungZahlungNichtMoeglichFehler) return;
+    throw error;
+  }
+  revalidatePath("/bestellungen");
+}
+
+export async function bellaCardRabattAnwenden(formular: FormData) {
+  const mitarbeiter = await verlangeFaehigkeit(FAEHIGKEITEN.bellaCardRabattAnwenden);
+  const rechnungId = String(formular.get("rechnungId") ?? "").trim();
+  if (!rechnungId) return;
+
+  try {
+    await wendeBellaCardRabattAn(prisma, rechnungId, mitarbeiter.id);
+  } catch (error) {
+    if (error instanceof BellaCardRabattNichtMoeglichFehler) return;
+    throw error;
+  }
+  revalidatePath("/bestellungen");
+}
+
+export async function rechnungszahlerWaehlen(formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.bellaCardRabattAnwenden);
+  const rechnungId = String(formular.get("rechnungId") ?? "").trim();
+  const zahlerGastId = String(formular.get("zahlerGastId") ?? "").trim();
+  if (!rechnungId || !zahlerGastId) return;
+
+  try {
+    await waehleRechnungszahler(prisma, rechnungId, zahlerGastId);
+  } catch (error) {
+    if (error instanceof BellaCardRabattNichtMoeglichFehler) return;
     throw error;
   }
   revalidatePath("/bestellungen");
