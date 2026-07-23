@@ -3,13 +3,13 @@ ALTER TABLE "Rechnung" ADD COLUMN "rabattbetragCent" INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE "Rechnung" ADD COLUMN "endbetragCent" INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE "Rechnung" ADD COLUMN "rabattFreigegebenVonMitarbeiterId" TEXT REFERENCES "Mitarbeiter"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+DROP TRIGGER "Rechnung_gueltigen_Snapshot_anlegen";
+DROP TRIGGER "Rechnung_nur_bezahlen";
+
 UPDATE "Rechnung" SET "endbetragCent" = "bruttobetragCent";
 
 CREATE INDEX "Rechnung_zahlerGastId_idx" ON "Rechnung"("zahlerGastId");
 CREATE INDEX "Rechnung_rabattFreigegebenVonMitarbeiterId_idx" ON "Rechnung"("rabattFreigegebenVonMitarbeiterId");
-
-DROP TRIGGER "Rechnung_gueltigen_Snapshot_anlegen";
-DROP TRIGGER "Rechnung_nur_bezahlen";
 
 CREATE TRIGGER "Rechnung_gueltigen_Snapshot_anlegen"
 BEFORE INSERT ON "Rechnung"

@@ -592,3 +592,18 @@ Die Startnavigation gruppiert vorhandene Links in die Bereiche „Administrative
 - Es entstehen keine neuen Routen, Rollen, Berechtigungen, Fachregeln oder Datenmodelle.
 - Serverseitige Zugriffskontrollen und bestehende Seiten bleiben unverändert.
 - Die Änderung erhält keine neue Feature-ID und verändert keinen Backlog-Status.
+
+## 2026-07-23 — Lokale Bella-Card-Migration für bestehende Rechnungen stabilisiert (BV-018)
+
+**Kontext:** Die Migration `20260723150000_add_bella_card_rabatt` kollidierte beim Anwenden auf eine lokale Entwicklungsdatenbank mit bestehenden Rechnungs- und Zahlungsdaten. Ihr Backfill für `endbetragCent` lief, während der bisherige Trigger `Rechnung_nur_bezahlen` noch aktiv war. Da dieser Trigger ausschließlich den Zahlungsübergang von `offen` nach `bezahlt` zuließ, brach er das Backfill mit `RECHNUNG_ZAHLUNG_UNGUELTIG` ab.
+
+### Entscheidung
+
+Die bestehenden Rechnungstrigger werden in der Bella-Card-Migration vor dem Daten-Backfill entfernt und anschließend durch die erweiterten Trigger ersetzt. Vorhandene Rechnungen erhalten `rabattbetragCent = 0`, `endbetragCent = bruttobetragCent`, `zahlerGastId = NULL` und `rabattFreigegebenVonMitarbeiterId = NULL`. Der unveränderliche Bruttobetrag-Snapshot sowie bestehender Rechnungsstatus, Zahlungsart und Bezahlzeitpunkt werden nicht verändert.
+
+### Konsequenzen
+
+- Die Korrektur ist ein Bugfix und Stabilisierungsschritt für BV-018; sie führt keine neue Feature-ID und keine neue Fachfunktion ein.
+- Die lokale fehlgeschlagene Migration konnte ohne Datenbank-Reset sicher zurückgenommen und anschließend regulär angewendet werden.
+- Der Vergleich mit der lokalen Sicherung ergab keine Abweichungen bei bestehenden Rechnungs- und Zahlungsdaten und keine inkonsistenten neuen Bella-Card-Felder.
+- Prisma-Migrationsstatus, vollständige Testsuite mit 135 Tests, TypeScript-Prüfung, Produktions-Build und `git diff --check` wurden erfolgreich ausgeführt.
