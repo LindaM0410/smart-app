@@ -578,3 +578,17 @@ Der Rabatt darf nur bei einem ausgewählten aktiven Zahler mit aktiver Bella-Car
 - Inhaber und Manager dürfen freigeben, weil beide Rollen in Spec und Backlog ausdrücklich genannt sind; Bedienung und Küche bleiben ausgeschlossen.
 - Bruttobetrag, Zahler, angewendeter Rabattbetrag und finaler Betrag sind in „Bestellungen pro Tisch“ sichtbar.
 - Teilrechnungen, getrennte oder gemeinsame Zahlungen, Mitteilungen, automatische Erkennung, Rechnungsstorno, allgemeine Auditierung sowie Seed- und Beispieldaten werden nicht eingeführt.
+
+## 2026-07-23 — Rollenorientierte Gruppierung der Startnavigation
+
+**Kontext:** Für Inhaber und Manager waren administrative Aufgaben und das Alltagsgeschäft auf der Startseite in einer gemeinsamen Linkliste vermischt. Die vorhandenen Seiten und Berechtigungen sollen unverändert leichter auffindbar sein.
+
+### Entscheidung
+
+Die Startnavigation gruppiert vorhandene Links in die Bereiche „Administratives“, „Alltagsgeschäft“, „Abrechnung/Freigaben“ und „Küche“. Inhaber und Manager sehen alle für ihre bestehenden Fähigkeiten passenden Bereiche, Bedienung nur ihre bereits erlaubten operativen und abrechnungsbezogenen Zugänge und Küche ausschließlich die Küchenansicht. Rechnungen, Zahlungen, Stornos und Freigaben verweisen weiterhin auf die bestehende Seite „Bestellungen pro Tisch“.
+
+### Konsequenzen
+
+- Es entstehen keine neuen Routen, Rollen, Berechtigungen, Fachregeln oder Datenmodelle.
+- Serverseitige Zugriffskontrollen und bestehende Seiten bleiben unverändert.
+- Die Änderung erhält keine neue Feature-ID und verändert keinen Backlog-Status.

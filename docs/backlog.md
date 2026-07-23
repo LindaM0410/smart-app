@@ -1,6 +1,6 @@
 # Backlog — Bella Vista Restaurant-App
 
-_Stand: 19. Juli 2026_
+_Stand: 23. Juli 2026_
 
 _Stabile Feature-IDs. IDs werden nicht umnummeriert oder wiederverwendet. Quelle aller initialen Einträge: `docs/spec.md`._
 
@@ -15,6 +15,12 @@ _Stabile Feature-IDs. IDs werden nicht umnummeriert oder wiederverwendet. Quelle
 | `killed` | verworfen; Begründung in `docs/decisions.md` |
 
 Die Anforderungen sind aus der Spezifikation übernommen, aber noch nicht durch Nutzerinterviews oder einen Pilot validiert. Deshalb starten sie als `hypo`.
+
+## UX- und Wartungsänderungen ohne Feature-ID
+
+| Datum | Änderung | Status | Umfang |
+| --- | --- | --- | --- |
+| 23.07.2026 | Startnavigation rollenorientiert vereinfachen | umgesetzt und verifiziert | Vorhandene Links in „Administratives“, „Alltagsgeschäft“, „Abrechnung/Freigaben“ und „Küche“ gruppiert; keine Rollenrechte, Routen, Fachregeln oder Datenmodelle geändert. Diese UX-Änderung erhält keine Feature-ID und verändert keinen Status bestehender Features. |
 
 ## Phase 1 — Kern: Reservierung und Tischplanung
 
