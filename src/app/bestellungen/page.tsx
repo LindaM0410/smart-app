@@ -10,7 +10,7 @@ import { waehleAktivenStandort } from "@/lib/standortfilter";
 
 import { BestellungFormular } from "./bestellung-formular";
 import { BestellpositionFormular } from "./bestellposition-formular";
-import { bestellpositionStornieren, rechnungErzeugen } from "./actions";
+import { bestellpositionStornieren, rechnungAlsBezahltMarkieren, rechnungErzeugen } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -117,9 +117,31 @@ export default async function BestellungenSeite({
             <div className="positionsbereich">
               <h4>Rechnung</h4>
               {bestellung.rechnung ? (
-                <div className="kartenkopf">
-                  <strong>Bruttobetrag: {formatierePreis(bestellung.rechnung.bruttobetragCent)}</strong>
-                  <span className="status aktiv">{bestellung.rechnung.status}</span>
+                <div>
+                  <div className="kartenkopf">
+                    <strong>Bruttobetrag: {formatierePreis(bestellung.rechnung.bruttobetragCent)}</strong>
+                    <span className="status aktiv">{bestellung.rechnung.status}</span>
+                  </div>
+                  {bestellung.rechnung.status === "bezahlt" ? (
+                    <p className="sekundaer">
+                      Zahlungsart: {bestellung.rechnung.zahlungsart === "bar" ? "Bar" : "Karte"}
+                      {bestellung.rechnung.bezahltAm
+                        ? ` · Bezahlt am ${bestellung.rechnung.bezahltAm.toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`
+                        : ""}
+                    </p>
+                  ) : (
+                    <form action={rechnungAlsBezahltMarkieren} className="zahlungsformular">
+                      <input name="rechnungId" type="hidden" value={bestellung.rechnung.id} />
+                      <label>
+                        Zahlungsart
+                        <select name="zahlungsart" required>
+                          <option value="bar">Bar</option>
+                          <option value="karte">Karte</option>
+                        </select>
+                      </label>
+                      <button type="submit">Als bezahlt markieren</button>
+                    </form>
+                  )}
                 </div>
               ) : bestellung.positionen.some((position) => position.status !== "storniert") ? (
                 <form action={rechnungErzeugen}>

@@ -18,7 +18,13 @@ import {
   type BestellungEingabe,
 } from "@/lib/bestellung-persistenz";
 import { prisma } from "@/lib/prisma";
-import { erstelleRechnung, RechnungNichtMoeglichFehler } from "@/lib/rechnung-persistenz";
+import {
+  erstelleRechnung,
+  markiereRechnungAlsBezahlt,
+  RechnungNichtMoeglichFehler,
+  RechnungZahlungNichtMoeglichFehler,
+  type Zahlungsart,
+} from "@/lib/rechnung-persistenz";
 
 export type BestellungFormularStatus = {
   meldung?: string;
@@ -160,6 +166,21 @@ export async function rechnungErzeugen(formular: FormData) {
     await erstelleRechnung(prisma, bestellungId);
   } catch (error) {
     if (error instanceof RechnungNichtMoeglichFehler) return;
+    throw error;
+  }
+  revalidatePath("/bestellungen");
+}
+
+export async function rechnungAlsBezahltMarkieren(formular: FormData) {
+  await verlangeFaehigkeit(FAEHIGKEITEN.rechnungBezahlen);
+  const rechnungId = String(formular.get("rechnungId") ?? "").trim();
+  const zahlungsart = String(formular.get("zahlungsart") ?? "").trim();
+  if (!rechnungId || !["bar", "karte"].includes(zahlungsart)) return;
+
+  try {
+    await markiereRechnungAlsBezahlt(prisma, rechnungId, zahlungsart as Zahlungsart);
+  } catch (error) {
+    if (error instanceof RechnungZahlungNichtMoeglichFehler) return;
     throw error;
   }
   revalidatePath("/bestellungen");

@@ -544,3 +544,19 @@ Pro Bestellung darf höchstens eine Rechnung existieren. Eine eindeutige Datenba
 - Stornierte Positionen tragen nicht zum Snapshot bei; leere und ausschließlich stornierte Bestellungen werden abgelehnt.
 - Zahlung, Zahlungsart, weitere Zahlungsstatus, Rabatt, Teilrechnung, Rechnungsstorno, Bestellstatusänderung, Auditierung sowie Seed- und Beispieldaten werden nicht eingeführt.
 - Berechnung, Stornoausschluss, leere und ausschließlich stornierte Bestellungen, Null-Cent-Betrag, Eindeutigkeit, Snapshot-Unveränderlichkeit, manipulierte Beträge und Rollenmatrix sind automatisiert getestet; vollständige Testsuite mit 125 Tests, TypeScript-Prüfung und Produktions-Build wurden erfolgreich ausgeführt.
+
+## 2026-07-23 — Einmaliger Zahlungsübergang für Rechnungen (BV-034)
+
+**Kontext:** Erzeugte Rechnungen besitzen bereits den initialen Status `offen` und einen unveränderlichen Betragssnapshot, konnten aber noch nicht als bezahlt erfasst werden.
+
+### Entscheidung
+
+Eine bestehende offene Rechnung kann genau einmal auf `bezahlt` gesetzt werden. Dabei wird die Zahlungsart `bar` oder `karte` ausgewählt und der Bezahlzeitpunkt ausschließlich serverseitig erzeugt. Andere Zahlungsarten, vorbefüllte Zahlungsdaten, erneutes Bezahlen und Änderungen am Betragssnapshot oder an sonstigen Rechnungsdaten werden abgewiesen.
+
+Die eigene Fähigkeit `rechnungBezahlen` ist Inhaber, Manager und Bedienung zugeordnet; Küche besitzt sie nicht. Die Prüfung erfolgt in der Server Action. Ein Datenbank-Trigger sichert Statusfolge, Zahlungsart, Zeitpunkt und Unveränderlichkeit zusätzlich gegen direkte oder manipulierte Schreibzugriffe.
+
+### Konsequenzen
+
+- Bezahlstatus, Zahlungsart und Bezahlzeitpunkt sind in der Bestellansicht sichtbar.
+- Der bestehende Rechnungsbetrag bleibt beim Bezahlen unverändert.
+- Rabatte, Teil- oder Sammelzahlungen, Rechnungsstorno, Bestellstatusänderungen, Auditierung sowie Seed- und Beispieldaten werden nicht eingeführt.

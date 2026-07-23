@@ -17,6 +17,7 @@ test("Inhaber und Manager dürfen Stammdaten und operative Abläufe nutzen", () 
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.kuechenstatusPflegen), true);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.bestellpositionStornieren), true);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.rechnungErzeugen), true);
+    assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.rechnungBezahlen), true);
   }
 });
 
@@ -31,6 +32,7 @@ test("Bedienung darf nur operative Abläufe und nicht die Küchenansicht nutzen"
   assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.kuechenstatusPflegen), false);
   assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.bestellpositionStornieren), false);
   assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.rechnungErzeugen), true);
+  assert.equal(hatFaehigkeit({ rolle: "bedienung" }, FAEHIGKEITEN.rechnungBezahlen), true);
 });
 
 test("Küche erhält ausschließlich die Küchenfähigkeit", () => {
@@ -39,6 +41,7 @@ test("Küche erhält ausschließlich die Küchenfähigkeit", () => {
   assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.kuechenstatusPflegen), true);
   assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.bestellpositionStornieren), false);
   assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.rechnungErzeugen), false);
+  assert.equal(hatFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.rechnungBezahlen), false);
 });
 
 test("unbekannte Rollen erhalten standardmäßig keine Fähigkeit", () => {
@@ -48,6 +51,7 @@ test("unbekannte Rollen erhalten standardmäßig keine Fähigkeit", () => {
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.kuechenstatusPflegen), false);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.bestellpositionStornieren), false);
     assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.rechnungErzeugen), false);
+    assert.equal(hatFaehigkeit({ rolle }, FAEHIGKEITEN.rechnungBezahlen), false);
   }
 });
 
@@ -87,6 +91,10 @@ test("dieselbe Prüfung lehnt gesperrte Serveroperationen ab", () => {
   );
   assert.throws(
     () => pruefeFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.rechnungErzeugen),
+    ZugriffVerweigertFehler,
+  );
+  assert.throws(
+    () => pruefeFaehigkeit({ rolle: "kueche" }, FAEHIGKEITEN.rechnungBezahlen),
     ZugriffVerweigertFehler,
   );
   assert.throws(() => pruefeFaehigkeit(null, FAEHIGKEITEN.stammdatenPflegen), ZugriffVerweigertFehler);

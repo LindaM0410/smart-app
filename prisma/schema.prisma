@@ -178,6 +178,8 @@ model Rechnung {
   bestellungId       String     @unique
   bruttobetragCent   Int
   status             String     @default("offen")
+  zahlungsart        String?
+  bezahltAm          DateTime?
   erstelltAm         DateTime   @default(now())
   bestellung         Bestellung @relation(fields: [bestellungId], references: [id], onDelete: Restrict)
 }

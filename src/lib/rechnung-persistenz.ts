@@ -8,6 +8,14 @@ export class RechnungNichtMoeglichFehler extends Error {
   }
 }
 
+export type Zahlungsart = "bar" | "karte";
+
+export class RechnungZahlungNichtMoeglichFehler extends Error {
+  constructor() {
+    super("Die Rechnung kann nicht als bezahlt markiert werden.");
+  }
+}
+
 export function erstelleRechnung(datenbank: PrismaClient, bestellungId: string) {
   return datenbank.$transaction(async (transaktion) => {
     const bestellung = await transaktion.bestellung.findUnique({
@@ -37,4 +45,27 @@ export function erstelleRechnung(datenbank: PrismaClient, bestellungId: string) 
       throw new RechnungNichtMoeglichFehler();
     }
   });
+}
+
+export async function markiereRechnungAlsBezahlt(
+  datenbank: PrismaClient,
+  rechnungId: string,
+  zahlungsart: Zahlungsart,
+  bezahltAm = new Date(),
+) {
+  if (!rechnungId || !["bar", "karte"].includes(zahlungsart)) {
+    throw new RechnungZahlungNichtMoeglichFehler();
+  }
+
+  try {
+    const ergebnis = await datenbank.rechnung.updateMany({
+      where: { id: rechnungId, status: "offen", zahlungsart: null, bezahltAm: null },
+      data: { status: "bezahlt", zahlungsart, bezahltAm },
+    });
+    if (ergebnis.count !== 1) throw new RechnungZahlungNichtMoeglichFehler();
+    return datenbank.rechnung.findUniqueOrThrow({ where: { id: rechnungId } });
+  } catch (error) {
+    if (error instanceof RechnungZahlungNichtMoeglichFehler) throw error;
+    throw new RechnungZahlungNichtMoeglichFehler();
+  }
 }

@@ -8,7 +8,12 @@ import type { TestContext } from "node:test";
 
 import { PrismaClient } from "@prisma/client";
 
-import { erstelleRechnung, RechnungNichtMoeglichFehler } from "./rechnung-persistenz.ts";
+import {
+  erstelleRechnung,
+  markiereRechnungAlsBezahlt,
+  RechnungNichtMoeglichFehler,
+  RechnungZahlungNichtMoeglichFehler,
+} from "./rechnung-persistenz.ts";
 
 async function erstelleTestdatenbank(t: TestContext) {
   const verzeichnis = await mkdtemp(path.join(tmpdir(), "bella-vista-rechnung-"));
@@ -110,5 +115,67 @@ test("Datenbank lehnt manipulierte Beträge und Status ab und bewahrt den Snapsh
   const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
   await assert.rejects(datenbank.rechnung.update({
     where: { id: rechnung.id }, data: { bruttobetragCent: 1 },
+  }));
+});
+
+test("markiert eine offene Rechnung mit Zahlungsart und serverseitigem Zeitpunkt als bezahlt", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
+  const bezahltAm = new Date("2026-07-23T18:30:00.000Z");
+
+  const bezahlt = await markiereRechnungAlsBezahlt(datenbank, rechnung.id, "bar", bezahltAm);
+
+  assert.equal(bezahlt.status, "bezahlt");
+  assert.equal(bezahlt.zahlungsart, "bar");
+  assert.deepEqual(bezahlt.bezahltAm, bezahltAm);
+  assert.equal(bezahlt.bruttobetragCent, 2580);
+});
+
+test("akzeptiert ausschließlich bar oder karte als Zahlungsart", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
+
+  await assert.rejects(
+    markiereRechnungAlsBezahlt(datenbank, rechnung.id, "ueberweisung" as "bar"),
+    RechnungZahlungNichtMoeglichFehler,
+  );
+  const unveraendert = await datenbank.rechnung.findUniqueOrThrow({ where: { id: rechnung.id } });
+  assert.equal(unveraendert.status, "offen");
+  assert.equal(unveraendert.zahlungsart, null);
+  assert.equal(unveraendert.bezahltAm, null);
+});
+
+test("eine bezahlte Rechnung kann nicht erneut bezahlt werden", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
+  await markiereRechnungAlsBezahlt(datenbank, rechnung.id, "karte");
+
+  await assert.rejects(
+    markiereRechnungAlsBezahlt(datenbank, rechnung.id, "bar"),
+    RechnungZahlungNichtMoeglichFehler,
+  );
+  const bezahlt = await datenbank.rechnung.findUniqueOrThrow({ where: { id: rechnung.id } });
+  assert.equal(bezahlt.status, "bezahlt");
+  assert.equal(bezahlt.zahlungsart, "karte");
+});
+
+test("Datenbank sperrt vorbefüllte und manipulierte Zahlungsdaten", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await assert.rejects(datenbank.rechnung.create({ data: {
+    bestellungId: "mit-positionen",
+    bruttobetragCent: 2580,
+    status: "offen",
+    zahlungsart: "bar",
+    bezahltAm: new Date(),
+  } }));
+
+  const rechnung = await erstelleRechnung(datenbank, "mit-positionen");
+  await assert.rejects(datenbank.rechnung.update({
+    where: { id: rechnung.id },
+    data: { status: "bezahlt", zahlungsart: "ueberweisung", bezahltAm: new Date() },
+  }));
+  await assert.rejects(datenbank.rechnung.update({
+    where: { id: rechnung.id },
+    data: { status: "bezahlt", zahlungsart: "bar", bezahltAm: new Date(), bruttobetragCent: 1 },
   }));
 });
