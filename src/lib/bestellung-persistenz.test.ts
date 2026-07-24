@@ -114,3 +114,68 @@ test("Datenbank verhindert direkte ungültige Bestellungen und andere Status", a
   } }));
   assert.equal(await datenbank.bestellung.count(), 0);
 });
+
+test("Datenbank bewahrt den Standortkontext gegen nachträgliche direkte Änderungen", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const bestellung = await erstelleBestellung(datenbank, {
+    standortId: "kreuzberg",
+    tischId: "tisch-k",
+    reservierungId: "res-k",
+    aufgenommenVonMitarbeiterId: "mit-k",
+  });
+
+  await assert.rejects(datenbank.tisch.update({
+    where: { id: "tisch-k" },
+    data: { standortId: "spandau" },
+  }));
+  await assert.rejects(datenbank.reservierung.update({
+    where: { id: "res-k" },
+    data: { standortId: "spandau" },
+  }));
+  await assert.rejects(datenbank.mitarbeiter.update({
+    where: { id: "mit-k" },
+    data: { hauptstandortId: "spandau" },
+  }));
+
+  const unveraendert = await datenbank.bestellung.findUniqueOrThrow({
+    where: { id: bestellung.id },
+    include: { tisch: true, reservierung: true, aufgenommenVonMitarbeiter: true },
+  });
+  assert.equal(unveraendert.tisch.standortId, "kreuzberg");
+  assert.equal(unveraendert.reservierung?.standortId, "kreuzberg");
+  assert.equal(unveraendert.aufgenommenVonMitarbeiter.hauptstandortId, "kreuzberg");
+});
+
+test("Datenbank lässt ein verwendetes Standortangebot nicht standortfremd werden", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  const bestellung = await erstelleBestellung(datenbank, {
+    standortId: "kreuzberg",
+    tischId: "tisch-k",
+    reservierungId: null,
+    aufgenommenVonMitarbeiterId: "mit-k",
+  });
+  await datenbank.artikel.create({
+    data: { id: "artikel-k", name: "Pasta", kategorie: "Hauptgericht", preisCent: 1200 },
+  });
+  await datenbank.artikelStandort.create({
+    data: { artikelId: "artikel-k", standortId: "kreuzberg" },
+  });
+  await datenbank.bestellposition.create({
+    data: {
+      bestellungId: bestellung.id,
+      artikelId: "artikel-k",
+      menge: 1,
+      einzelpreisCent: 1200,
+      sonderwunsch: "",
+    },
+  });
+
+  await assert.rejects(datenbank.artikelStandort.delete({
+    where: {
+      artikelId_standortId: { artikelId: "artikel-k", standortId: "kreuzberg" },
+    },
+  }));
+  assert.equal(await datenbank.artikelStandort.count({
+    where: { artikelId: "artikel-k", standortId: "kreuzberg" },
+  }), 1);
+});

@@ -695,3 +695,43 @@ laden.
   unverändert und werden erst nach erfolgreicher Standortprüfung angewendet.
 - Bestellungen, Rechnungen, Catering, Gruppenmenüs, Auswertungen, Auditierung und
   Seed- oder Beispieldaten werden nicht verändert.
+
+## 2026-07-24 — Durchgängige Standortbindung von Bestellung und Rechnung (BV-035)
+
+**Kontext:** Bestellungseröffnung und Positionsaufnahme prüften bereits den
+gewählten Standort. Direkte nachträgliche Änderungen an referenzierten Tischen,
+Reservierungen, Mitarbeitenden oder Artikelfreigaben konnten die gespeicherte
+Kette jedoch noch inkonsistent machen. Rechnung, Rabatt und Zahlung verließen
+sich außerdem auf diese vorgelagerten Prüfungen, ohne die vollständige Kette
+selbst erneut zu validieren.
+
+### Entscheidung
+
+Bestellung, Tisch, optionale Reservierung und aufnehmender Mitarbeiter müssen
+denselben Standort referenzieren. Jede Bestellposition benötigt weiterhin eine
+Artikelfreigabe für diesen Standort. SQLite-Trigger bewahren diese Beziehungen
+auch bei direkten Änderungen an den referenzierten Stammdaten und verhindern,
+dass eine verwendete Artikelfreigabe entfernt oder auf einen anderen Standort
+verschoben wird.
+
+Vor Rechnungserzeugung, Zahlerauswahl, Rabatt und Zahlung validiert die
+serverseitige Fachgrenze die gesamte Standortkette erneut. Zusätzliche
+Rechnungstrigger verweigern Anlage und Änderung, falls Bestellung, Positionen
+oder ihre Standortbeziehungen inkonsistent sind. Betragssnapshot, Rabattregeln,
+Zahlungsübergang und bestehende Rollenrechte bleiben unverändert.
+
+Die Bestelloberfläche lädt Tische, Reservierungen, Bestellungen und Artikel
+weiterhin ausschließlich für den ausgewählten aktiven Standort; ihre bestehende
+Filterung benötigt keine neue Bedienfunktion.
+
+### Konsequenzen
+
+- Manipulierte Formularwerte und direkte Datenbankschreibversuche können keine
+  standortfremden Tische, Reservierungen, Mitarbeitenden, Artikelangebote,
+  Bestellungen oder Rechnungen miteinander verknüpfen.
+- Rechnung, Rabatt und Zahlung werden abgewiesen, sobald eine vorhandene
+  Bestellkette nicht vollständig standortkonsistent ist.
+- Es entstehen keine neuen Rechnungs-, Rabatt- oder Zahlungsfunktionen und kein
+  allgemeines Auditmodell.
+- Die Standortinvariante ist durch Integrations- und Datenbanktests für
+  Bestellung, Positionen, Rechnung, Rabatt und Zahlung abgedeckt.

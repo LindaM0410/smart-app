@@ -22,6 +22,62 @@ export class BellaCardRabattNichtMoeglichFehler extends Error {
   }
 }
 
+async function ladeStandortkonsistenteBestellung(
+  datenbank: Pick<PrismaClient, "bestellung">,
+  bestellungId: string,
+) {
+  const bestellung = await datenbank.bestellung.findUnique({
+    where: { id: bestellungId },
+    select: {
+      standortId: true,
+      tisch: { select: { standortId: true } },
+      reservierung: { select: { standortId: true } },
+      aufgenommenVonMitarbeiter: { select: { hauptstandortId: true } },
+      positionen: {
+        select: {
+          menge: true,
+          einzelpreisCent: true,
+          status: true,
+          artikel: {
+            select: {
+              standortAngebote: { select: { standortId: true } },
+            },
+          },
+        },
+      },
+      rechnung: { select: { id: true } },
+    },
+  });
+
+  if (
+    !bestellung
+    || bestellung.tisch.standortId !== bestellung.standortId
+    || bestellung.aufgenommenVonMitarbeiter.hauptstandortId !== bestellung.standortId
+    || (bestellung.reservierung && bestellung.reservierung.standortId !== bestellung.standortId)
+    || bestellung.positionen.some((position) =>
+      !position.artikel.standortAngebote.some(
+        (angebot) => angebot.standortId === bestellung.standortId,
+      ))
+  ) {
+    return null;
+  }
+
+  return bestellung;
+}
+
+async function hatStandortkonsistenteRechnung(
+  datenbank: Pick<PrismaClient, "rechnung" | "bestellung">,
+  rechnungId: string,
+) {
+  const rechnung = await datenbank.rechnung.findUnique({
+    where: { id: rechnungId },
+    select: { bestellungId: true },
+  });
+  return rechnung
+    ? ladeStandortkonsistenteBestellung(datenbank, rechnung.bestellungId)
+    : null;
+}
+
 export function berechneBellaCardRabattCent(bruttobetragCent: number) {
   if (!Number.isSafeInteger(bruttobetragCent) || bruttobetragCent < 0) {
     throw new BellaCardRabattNichtMoeglichFehler();
@@ -35,15 +91,7 @@ export function berechneBellaCardRabattCent(bruttobetragCent: number) {
 
 export function erstelleRechnung(datenbank: PrismaClient, bestellungId: string) {
   return datenbank.$transaction(async (transaktion) => {
-    const bestellung = await transaktion.bestellung.findUnique({
-      where: { id: bestellungId },
-      select: {
-        rechnung: { select: { id: true } },
-        positionen: {
-          select: { menge: true, einzelpreisCent: true, status: true },
-        },
-      },
-    });
+    const bestellung = await ladeStandortkonsistenteBestellung(transaktion, bestellungId);
 
     if (!bestellung || bestellung.rechnung) throw new RechnungNichtMoeglichFehler();
 
@@ -80,6 +128,9 @@ export function wendeBellaCardRabattAn(
   }
 
   return datenbank.$transaction(async (transaktion) => {
+    if (!await hatStandortkonsistenteRechnung(transaktion, rechnungId)) {
+      throw new BellaCardRabattNichtMoeglichFehler();
+    }
     const [rechnung, freigebender] = await Promise.all([
       transaktion.rechnung.findFirst({
         where: {
@@ -127,6 +178,9 @@ export async function waehleRechnungszahler(
   zahlerGastId: string,
 ) {
   if (!rechnungId || !zahlerGastId) throw new BellaCardRabattNichtMoeglichFehler();
+  if (!await hatStandortkonsistenteRechnung(datenbank, rechnungId)) {
+    throw new BellaCardRabattNichtMoeglichFehler();
+  }
   const zahler = await datenbank.gast.findFirst({
     where: { id: zahlerGastId, aktiv: true },
     select: { id: true },
@@ -161,6 +215,9 @@ export async function markiereRechnungAlsBezahlt(
   }
 
   try {
+    if (!await hatStandortkonsistenteRechnung(datenbank, rechnungId)) {
+      throw new RechnungZahlungNichtMoeglichFehler();
+    }
     const ergebnis = await datenbank.rechnung.updateMany({
       where: { id: rechnungId, status: "offen", zahlungsart: null, bezahltAm: null },
       data: { status: "bezahlt", zahlungsart, bezahltAm },

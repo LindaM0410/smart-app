@@ -41,7 +41,7 @@ export default async function BestellungenSeite({
     <main>
       <Link className="zurueck" href="/">← Startseite</Link>
       <header className="seitenkopf">
-        <p className="kennung">BV-018</p>
+        <p className="kennung">BV-035</p>
         <h1>Bestellungen pro Tisch</h1>
         <p>Offene Bestellungen pflegen und Positionen aus dem gültigen Standortangebot aufnehmen.</p>
       </header>

@@ -90,6 +90,13 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 
 - Eine Bestellung hat mindestens eine Position, sobald sie verbindlich an die Küche übergeben wird.
 - Mitarbeiter, Tisch und Bestellung müssen zum selben aktiven Standortkontext passen.
+- BV-035 bewahrt die Standortkette von Bestellung, Tisch, optionaler Reservierung,
+  aufnehmendem Mitarbeiter und Artikelangebot auch bei nachträglichen direkten
+  Schreibversuchen. Verwendete Artikelfreigaben können nicht entfernt oder
+  verschoben werden, solange Bestellpositionen dieses Standorts darauf verweisen.
+- Rechnungserzeugung, Zahlerauswahl, Rabatt und Zahlung prüfen die vollständige
+  Standortkette erneut; SQLite-Trigger sperren außerdem das Anlegen oder Ändern
+  einer Rechnung auf Basis einer standortinkonsistenten Bestellung.
 - Stornierte Positionen tragen nicht zum Rechnungsbetrag bei.
 - Rechnungsbeträge werden aus unveränderlichen Preis-Snapshots der Positionen berechnet; spätere Menüpreisänderungen verändern alte Bestellungen nicht.
 - Geld wird als Dezimalwert bzw. kleinste Währungseinheit gespeichert, nie als Float.

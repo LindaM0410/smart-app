@@ -287,3 +287,56 @@ test("Datenbank sperrt vorbefüllte und manipulierte Zahlungsdaten", async (t) =
     data: { status: "bezahlt", zahlungsart: "bar", bezahltAm: new Date(), bruttobetragCent: 1 },
   }));
 });
+
+test("Rechnung, Rabatt und Zahlung lehnen eine standortinkonsistente Bestellkette ab", async (t) => {
+  const datenbank = await erstelleTestdatenbank(t);
+  await datenbank.standort.create({
+    data: {
+      id: "anderer-standort",
+      name: "Spandau",
+      adresse: "Test",
+      sitzplaetze: 50,
+      hatTerrasse: false,
+      hatGrill: false,
+    },
+  });
+
+  await datenbank.$executeRawUnsafe('DROP TRIGGER "Tisch_Bestellstandort_bewahren"');
+  await datenbank.tisch.update({
+    where: { id: "tisch" },
+    data: { standortId: "anderer-standort" },
+  });
+
+  await assert.rejects(
+    erstelleRechnung(datenbank, "mit-positionen"),
+    RechnungNichtMoeglichFehler,
+  );
+  await assert.rejects(datenbank.rechnung.create({
+    data: {
+      bestellungId: "mit-positionen",
+      bruttobetragCent: 2580,
+      endbetragCent: 2580,
+    },
+  }));
+
+  await datenbank.$executeRawUnsafe('DROP TRIGGER "Rechnung_nur_standortkonsistente_Bestellung"');
+  const rechnung = await datenbank.rechnung.create({
+    data: {
+      bestellungId: "mit-positionen",
+      bruttobetragCent: 2580,
+      endbetragCent: 2580,
+    },
+  });
+  await assert.rejects(
+    waehleRechnungszahler(datenbank, rechnung.id, "bella"),
+    BellaCardRabattNichtMoeglichFehler,
+  );
+  await assert.rejects(
+    wendeBellaCardRabattAn(datenbank, rechnung.id, "manager"),
+    BellaCardRabattNichtMoeglichFehler,
+  );
+  await assert.rejects(
+    markiereRechnungAlsBezahlt(datenbank, rechnung.id, "bar"),
+    RechnungZahlungNichtMoeglichFehler,
+  );
+});
