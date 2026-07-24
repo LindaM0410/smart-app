@@ -767,3 +767,35 @@ Spezifikation zum jeweiligen Catering-Auftrag und werden nicht vorgezogen.
   Zahlungen und Seed-Daten bleiben außerhalb dieses Slices.
 - Pflichtfelder, Persistenz, Deaktivierung und Rollenpfad sind automatisiert
   getestet; 154 Tests, TypeScript-Prüfung und Produktions-Build sind erfolgreich.
+
+## 2026-07-24 — Einfacher Catering-Auftrag ohne Statusfolge (BV-023)
+
+**Kontext:** Wiederverwendbare Firmenkundenkontakte bestehen bereits. Für
+BV-023 soll ein einfacher Catering-Auftrag verwaltbar werden, ohne eine
+Statusfolge oder Abrechnung und Auswertung vorwegzunehmen.
+
+### Entscheidung
+
+Ein Catering-Auftrag wird als eigene Entität mit einem aktiven
+Firmenkundenkontakt, Lieferadresse, Lieferdatum, Lieferzeit, positiver
+Personenzahl, Menübeschreibung, ganzzahligem Gesamtpreis in Cent und optionaler
+Notiz persistiert. Neue Aufträge erhalten serverseitig ausschließlich den
+Startstatus `angefragt`. Das Bearbeitungsformular zeigt den Status nur an und
+übermittelt keine Statusänderung.
+
+Inhaber und Manager verwalten Catering-Aufträge über die bestehende Fähigkeit
+`stammdatenPflegen`. Seite, Server-Actions und direkter Routenaufruf werden
+entsprechend geschützt. Die Funktion wird klein neben den
+Firmenkundenkontakten unter „Administratives“ eingeordnet. Eine Löschoperation
+wird nicht angeboten; die Kontaktbeziehung verhindert zusätzlich das harte
+Löschen eines noch referenzierten Firmenkundenkontakts.
+
+### Konsequenzen
+
+- Aufträge können mit allen Pflichtangaben angelegt und bearbeitet werden.
+- Geldbeträge bleiben ohne Fließkommazahlen centgenau gespeichert.
+- Catering-Statusfolge, Auswertung, Rechnung, Zahlung, Gruppenmenü sowie Seed-
+  und Beispieldaten bleiben außerhalb dieses Slices.
+- Serverseitige Validierung, aktiver Kontakt, Startstatus, Bearbeitung,
+  Persistenz und Rollenpfad sind automatisiert abgedeckt; 161 Tests,
+  TypeScript-Prüfung und Produktions-Build sind erfolgreich.

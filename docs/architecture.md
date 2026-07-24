@@ -1,6 +1,6 @@
 # Architektur — Bella Vista Restaurant-App
 
-_Stand: 19. Juli 2026 · Status: fachliche Architektur und technisches Grundgerüst definiert_
+_Stand: 24. Juli 2026 · Status: fachliche Architektur und technisches Grundgerüst definiert_
 
 ## 1. Architekturziele
 
@@ -110,6 +110,14 @@ Die Konfliktprüfung darf nicht ausschließlich als vorherige Leseabfrage implem
 - Tischkombinationen enthalten nur Tische desselben Standorts.
 - Ein Artikel ist nur bestellbar, wenn er für den Standort aktiv freigegeben ist.
 - Ein Artikel mit `benoetigtGrill = true` ist an einem Standort ohne Grill nicht freigebbar.
+
+### Catering
+
+- Ein Catering-Auftrag referenziert genau einen Firmenkundenkontakt.
+- Neue und bearbeitete Aufträge benötigen einen aktiven Firmenkundenkontakt.
+- Vereinbarte Gesamtpreise werden als ganzzahlige Centbeträge gespeichert.
+- BV-023 setzt bei Anlage ausschließlich den Startstatus `angefragt`; eine
+  fachliche Statusfolge bleibt einem separaten Folge-Feature vorbehalten.
 
 ## 7. Berechtigungen
 

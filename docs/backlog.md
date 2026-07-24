@@ -1,6 +1,6 @@
 # Backlog — Bella Vista Restaurant-App
 
-_Stand: 23. Juli 2026_
+_Stand: 24. Juli 2026_
 
 _Stabile Feature-IDs. IDs werden nicht umnummeriert oder wiederverwendet. Quelle aller initialen Einträge: `docs/spec.md`._
 
@@ -81,7 +81,7 @@ Ziel: Der Betrieb soll über Reservierung und Bestellung hinaus strukturierter w
 | BV-020 | Speisekarte verwalten | 3 | done | Artikel mit Name, Kategorie, centgenauem Preis im deutschen Euroformat, Grillbedarf, Aktivstatus und Standortfreigaben anlegen, bearbeiten und deaktivieren; BV-021-Regeln werden server- und datenbankseitig bewahrt (Euro-und-Cent-Eingabe mit 80 Tests, TypeScript-Prüfung und Produktions-Build verifiziert am 18.07.2026) |
 | BV-021 | Standortabhängiges Artikelangebot steuern | 3 | done | Aktive Artikel werden mit ganzzahligen Centpreisen ausdrücklich aktiven Standorten zugeordnet und pro Standort gelesen; Grillartikel können server- und datenbankseitig nur Standorten mit Grill zugeordnet werden, bestehende Angebote bleiben bei Änderungen gültig (verifiziert am 17.07.2026) |
 | BV-022 | Firmenkundenkontakte verwalten | 3 | done | Firmenkundenkontakte mit Firma, Ansprechperson, Kontaktdaten, optionaler Notiz und Aktivstatus durch Inhaber/Manager anlegen, bearbeiten und deaktivieren; Pflichtangaben und Rollen werden serverseitig erzwungen (mit 154 Tests, TypeScript-Prüfung und Produktions-Build verifiziert am 24.07.2026) |
-| BV-023 | Catering-Aufträge verwalten | 3 | hypo | Auftrag mit Firma, Kontakt, Lieferadresse, Datum, Uhrzeit, Personenzahl, Menü, Preis und Status speichern |
+| BV-023 | Catering-Aufträge verwalten | 3 | done | Auftrag mit aktivem Firmenkundenkontakt, Lieferadresse, Datum, Uhrzeit, positiver Personenzahl, Menü, optionaler Notiz, centgenauem Gesamtpreis und initialem Status `angefragt` durch Inhaber/Manager anlegen und bearbeiten; serverseitig validiert, ohne Löschfunktion oder Statusfolge (mit 161 Tests, TypeScript-Prüfung und Produktions-Build verifiziert am 24.07.2026) |
 | BV-024 | Catering-Statusfolge erzwingen | 3 | hypo | Catering-Aufträge durchlaufen `angefragt` → `bestaetigt` → `geliefert` → `bezahlt` |
 | BV-036 | Gruppenmenü verwalten | 3 | hypo | fuer Gruppenreservierungen kann ein vorgesehenes Gruppenmenü geplant und dokumentiert werden |
 | BV-037 | Einfache No-Show-Auswertung | 3 | hypo | No-Shows lassen sich einfach nach Zeitraum und Standort auswerten |

@@ -113,6 +113,10 @@ export default async function Startseite({
               <strong>Firmenkundenkontakte</strong>
               <span>Firma, Ansprechperson und Kontaktdaten pflegen</span>
             </Link>
+            <Link className="funktionskarte" href="/catering-auftraege">
+              <strong>Catering-Aufträge</strong>
+              <span>Liefertermine, Menüs und vereinbarte Beträge pflegen</span>
+            </Link>
           </div>
         </section>
       ) : null}

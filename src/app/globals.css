@@ -207,6 +207,7 @@ h2 {
 .tisch-formular,
 .gast-formular,
 .firmenkundenkontakt-formular,
+.catering-auftrag-formular,
 .mitarbeiter-formular,
 .reservierung-formular,
 .walk-in-formular,
@@ -239,6 +240,8 @@ h2 {
 .standort-formular > label,
 .tisch-formular > label,
 .gast-formular > label,
+.firmenkundenkontakt-formular > label,
+.catering-auftrag-formular > label,
 .mitarbeiter-formular > label,
 .reservierung-formular > label,
 .walk-in-formular > label,
@@ -481,6 +484,8 @@ button:disabled {
   .standort-formular,
   .tisch-formular,
   .gast-formular,
+  .firmenkundenkontakt-formular,
+  .catering-auftrag-formular,
   .reservierung-formular,
   .walk-in-formular {
     grid-template-columns: 1fr;

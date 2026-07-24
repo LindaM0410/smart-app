@@ -132,12 +132,30 @@ model Gast {
 }
 
 model Firmenkundenkontakt {
-  id             String  @id @default(cuid())
-  firmenname     String
-  ansprechperson String
-  kontaktdaten   String
-  notiz          String
-  aktiv          Boolean @default(true)
+  id                String            @id @default(cuid())
+  firmenname        String
+  ansprechperson    String
+  kontaktdaten      String
+  notiz             String
+  aktiv             Boolean           @default(true)
+  cateringAuftraege CateringAuftrag[]
+}
+
+model CateringAuftrag {
+  id                    String              @id @default(cuid())
+  firmenkundenkontaktId String
+  lieferadresse         String
+  datum                 DateTime
+  uhrzeit               String
+  personenanzahl        Int
+  menueBeschreibung     String
+  preisGesamtCent       Int
+  notiz                 String
+  status                String              @default("angefragt")
+  firmenkundenkontakt   Firmenkundenkontakt @relation(fields: [firmenkundenkontaktId], references: [id], onDelete: Restrict)
+
+  @@index([firmenkundenkontaktId])
+  @@index([datum])
 }
 
 model Reservierung {
