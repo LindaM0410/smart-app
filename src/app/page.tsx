@@ -109,6 +109,10 @@ export default async function Startseite({
               <strong>Artikelangebot</strong>
               <span>Gültige Artikel pro Standort einsehen</span>
             </Link>
+            <Link className="funktionskarte" href="/firmenkundenkontakte">
+              <strong>Firmenkundenkontakte</strong>
+              <span>Firma, Ansprechperson und Kontaktdaten pflegen</span>
+            </Link>
           </div>
         </section>
       ) : null}

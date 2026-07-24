@@ -65,7 +65,7 @@ test("unbekannte Rollen erhalten standardmäßig keine Fähigkeit", () => {
 });
 
 test("direkte Seitenpfade sind der passenden Fähigkeit zugeordnet", () => {
-  for (const pfad of ["/standorte", "/tische", "/mitarbeiter", "/speisekarte", "/artikelangebot?standortId=1"]) {
+  for (const pfad of ["/standorte", "/tische", "/mitarbeiter", "/speisekarte", "/artikelangebot?standortId=1", "/firmenkundenkontakte"]) {
     assert.equal(faehigkeitFuerPfad(pfad), FAEHIGKEITEN.stammdatenPflegen);
   }
   for (const pfad of ["/gaeste", "/reservierungen/", "/tischuebersicht", "/walk-ins", "/belegungen", "/bestellungen"]) {

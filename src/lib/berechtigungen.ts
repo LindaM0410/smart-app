@@ -50,7 +50,7 @@ export function pruefeGruppenreservierungPlanung(
 
 export function faehigkeitFuerPfad(pfad: string): Faehigkeit | null {
   const erstesSegment = `/${pfad.split(/[/?#]/).filter(Boolean)[0] ?? ""}`;
-  if (["/standorte", "/tische", "/mitarbeiter", "/speisekarte", "/artikelangebot"].includes(erstesSegment)) {
+  if (["/standorte", "/tische", "/mitarbeiter", "/speisekarte", "/artikelangebot", "/firmenkundenkontakte"].includes(erstesSegment)) {
     return FAEHIGKEITEN.stammdatenPflegen;
   }
   if (["/gaeste", "/reservierungen", "/tischuebersicht", "/walk-ins", "/belegungen", "/bestellungen"].includes(erstesSegment)) {

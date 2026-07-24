@@ -131,6 +131,15 @@ model Gast {
   rechnungen     Rechnung[]
 }
 
+model Firmenkundenkontakt {
+  id             String  @id @default(cuid())
+  firmenname     String
+  ansprechperson String
+  kontaktdaten   String
+  notiz          String
+  aktiv          Boolean @default(true)
+}
+
 model Reservierung {
   id                       String              @id @default(cuid())
   gastId                   String

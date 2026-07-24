@@ -735,3 +735,35 @@ Filterung benötigt keine neue Bedienfunktion.
   allgemeines Auditmodell.
 - Die Standortinvariante ist durch Integrations- und Datenbanktests für
   Bestellung, Positionen, Rechnung, Rabatt und Zahlung abgedeckt.
+
+## 2026-07-24 — Minimaler Firmenkundenkontakt als Catering-Grundlage (BV-022)
+
+**Kontext:** Das Backlog beschreibt Firmenname, Ansprechperson und Kontaktdaten
+als wiederverwendbare Grundlage für spätere Catering-Aufträge. Die Spezifikation
+führt Telefon, E-Mail und Lieferadresse nur am noch nicht umgesetzten
+Catering-Auftrag auf und definiert keine eigene Firmenkundenkontakt-Entität.
+
+### Entscheidung
+
+Der Firmenkundenkontakt wird als eigenes Stammdatenmodell mit Firmenname,
+Ansprechperson, einem gemeinsamen Freitextfeld für Kontaktdaten, optionaler
+Notiz und Aktivstatus persistiert. Firmenname, Ansprechperson und Kontaktdaten
+sind Pflichtangaben und werden serverseitig validiert. Kontakte werden
+deaktiviert statt gelöscht.
+
+Inhaber und Manager verwalten die Kontakte über die bestehende Fähigkeit
+`stammdatenPflegen`; Bedienung und Küche bleiben ausgeschlossen. Die Funktion
+wird ohne neuen Arbeitsbereich unter „Administratives“ eingeordnet.
+
+Telefon und E-Mail werden bewusst nicht als getrennte Pflichtfelder modelliert,
+weil BV-022 nur Kontaktdaten verlangt. Lieferadressen gehören gemäß
+Spezifikation zum jeweiligen Catering-Auftrag und werden nicht vorgezogen.
+
+### Konsequenzen
+
+- Firmenkontakte können unabhängig von normalen Gästen angelegt, wiedergefunden,
+  bearbeitet und deaktiviert werden.
+- Catering-Aufträge, Catering-Status, Lieferadressen, Auswertungen, Rechnungen,
+  Zahlungen und Seed-Daten bleiben außerhalb dieses Slices.
+- Pflichtfelder, Persistenz, Deaktivierung und Rollenpfad sind automatisiert
+  getestet; 154 Tests, TypeScript-Prüfung und Produktions-Build sind erfolgreich.
